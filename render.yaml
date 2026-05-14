@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cyber-case-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /docs
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: FRONTEND_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: HUNYUAN_API_KEY
+        sync: false
+      - key: SQLITE_DB_PATH
+        value: /opt/render/project/src/backend/data/npc_memory.sqlite3

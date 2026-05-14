@@ -1,0 +1,84 @@
+import type { Clue, Npc } from "../types/game";
+import { PanelFrame } from "./PanelFrame";
+
+interface CluePanelProps {
+  clues: Clue[];
+  activeNpc: Npc;
+  discoveredClueIds: Set<string>;
+}
+
+export function CluePanel({
+  clues,
+  activeNpc,
+  discoveredClueIds,
+}: CluePanelProps) {
+  return (
+    <PanelFrame
+      title="Case Fragments"
+      subtitle="右侧面板持续同步解锁的证据，并高亮当前审讯对象关联的线索。"
+      className="h-full min-h-[24rem] p-5 sm:p-6"
+      action={
+        <div className="terminal-pill rounded-full px-3.5 py-2 text-[0.65rem] uppercase tracking-[0.22em] text-[#D7DEE7]">
+          {discoveredClueIds.size}/{clues.length} clues
+        </div>
+      }
+    >
+      <div className="space-y-3.5">
+        {clues.map((clue) => {
+          const unlocked = discoveredClueIds.has(clue.id);
+          const relatedToActiveNpc = clue.sourceNpcId === activeNpc.id;
+
+          return (
+            <article
+              key={clue.id}
+              className={`cyber-card rounded-[26px] p-5 transition duration-300 ${
+                unlocked
+                  ? relatedToActiveNpc
+                    ? "border-white/10 bg-[rgba(142,178,193,0.08)] shadow-[0_10px_22px_rgba(7,12,20,0.14)]"
+                    : "border-white/8 bg-[rgba(156,149,181,0.06)]"
+                  : "border-dashed border-slate-300/10 bg-slate-100/[0.03]"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[0.96rem] font-semibold text-slate-50">{clue.title}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.24em] text-[#AEB8C5]">
+                    {clue.category}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.22em] ${
+                    unlocked
+                      ? "border border-white/8 bg-white/[0.05] text-[#D7DEE7]"
+                      : "border border-slate-300/10 bg-slate-100/[0.03] text-[#AEB8C5]"
+                  }`}
+                >
+                  {unlocked ? "UNLOCKED" : "LOCKED"}
+                </span>
+              </div>
+              <p
+                className={`mt-3 text-[0.92rem] leading-7 ${
+                  unlocked ? "text-[#D7DEE7]" : "text-[#AEB8C5]"
+                }`}
+              >
+                {unlocked
+                  ? clue.summary
+                  : "线索仍被遮罩。继续与相关 NPC 交谈以恢复完整数据片段。"}
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <p className="text-[0.7rem] uppercase tracking-[0.22em] text-[#AEB8C5]">
+                  Source // {clue.sourceNpcId.toUpperCase()}
+                </p>
+                {relatedToActiveNpc ? (
+                  <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.2em] text-[#D7DEE7]">
+                    linked
+                  </span>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </PanelFrame>
+  );
+}
