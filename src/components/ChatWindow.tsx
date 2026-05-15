@@ -17,9 +17,9 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
   return (
     <PanelFrame
       title="Interrogation Feed"
-      className="chat-panel flex h-full min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-5"
+      className="chat-panel flex h-full min-h-[26rem] flex-col p-4 sm:min-h-[30rem] sm:p-5"
     >
-      <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
+      <div className="cyber-card mb-4 rounded-[24px] px-4 py-3.5 sm:px-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
@@ -70,7 +70,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         </div>
       </div>
 
-      <div className="chat-feed min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1">
+      <div className="chat-feed min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1">
         <div className="space-y-5">
           {messages.map((message) => {
             const isPlayer = message.speakerType === "player";

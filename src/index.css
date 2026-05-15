@@ -34,13 +34,11 @@
 html,
 body,
 #root {
-  height: 100%;
   min-height: 100%;
   margin: 0;
 }
 
 body {
-  overflow: hidden;
   min-width: 320px;
   background:
     radial-gradient(circle at 14% 10%, rgba(167, 181, 200, 0.08), transparent 0 28%),
