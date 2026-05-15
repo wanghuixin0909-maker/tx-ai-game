@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,8 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 DEFAULT_SQLITE_DB_PATH = BASE_DIR / "data" / "npc_memory.sqlite3"
+
+AppMode = Literal["development", "demo"]
 
 
 class Settings(BaseSettings):
@@ -33,6 +36,7 @@ class Settings(BaseSettings):
         validation_alias="LLM_TIMEOUT_SECONDS",
     )
     npc_memory_turns: int = Field(default=12, validation_alias="NPC_MEMORY_TURNS")
+    app_mode: AppMode = Field(default="development", validation_alias="APP_MODE")
 
     model_config = SettingsConfigDict(
         env_file=(PROJECT_ROOT / ".env", BASE_DIR / ".env"),

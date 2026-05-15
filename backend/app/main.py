@@ -2,11 +2,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .case_bible import get_memory_npc_id
+from .demo_engine import get_demo_engine
 from .llm import LlmConfigurationError, LlmTimeoutError, LlmUpstreamError, chat as chat_with_llm
 from .memory import MemoryStoreError, memory_store
 from .npc_prompts import get_npc_system_prompt
-from .schemas import ChatRequest, ChatResponse
+from .schemas import ChatRequest, ChatResponse, TokenStatsResponse
 from .settings import get_settings
+from .token_logger import get_token_logger
 
 
 app = FastAPI(
@@ -81,28 +83,66 @@ def detect_player_attitude(message: str) -> str:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_route(payload: ChatRequest) -> ChatResponse:
+    """主对话路由 - 根据 APP_MODE 自动切换开发/演示模式"""
+    memory_npc_id = get_memory_npc_id(payload.npc_id)
+
+    # 演示模式：不调用 API，直接返回本地数据
+    if settings.app_mode == "demo":
+        return await _demo_chat_route(payload, memory_npc_id)
+
+    # 开发模式：正常调用 LLM API
+    return await _dev_chat_route(payload, memory_npc_id)
+
+
+async def _demo_chat_route(payload: ChatRequest, memory_npc_id: str) -> ChatResponse:
+    """
+    演示模式路由
+    - 不调用任何外部 API
+    - 从本地对话数据返回稳定回复
+    """
+    # 获取对话历史（用于假记忆系统）
+    history = memory_store.load_history(memory_npc_id)
+    conversation_history = [
+        {"role": "user", "content": ex.player_message}
+        for ex in history
+    ] if history else None
+
+    # 获取演示引擎回复
+    demo_engine = get_demo_engine()
+    result = demo_engine.get_reply(
+        npc_id=payload.npc_id,
+        player_message=payload.player_message,
+        conversation_history=conversation_history,
+    )
+
+    reply = result.get("reply", "抱歉，演示模式出现错误。")
+
+    # 在演示模式下，仍保存对话历史以维持假记忆
+    try:
+        memory_store.save_exchange(memory_npc_id, payload.player_message, reply)
+    except MemoryStoreError:
+        pass  # 记忆保存失败不影响回复
+
+    return ChatResponse(
+        npc_id=payload.npc_id,
+        reply=reply,
+    )
+
+
+async def _dev_chat_route(payload: ChatRequest, memory_npc_id: str) -> ChatResponse:
+    """
+    开发模式路由
+    - 正常调用腾讯混元 API
+    - 记录 token 使用
+    """
     system_prompt = get_npc_system_prompt(payload.npc_id)
     if system_prompt is None:
         raise HTTPException(status_code=400, detail="Unknown npc_id.")
 
-    memory_npc_id = get_memory_npc_id(payload.npc_id)
-
-    # 检测玩家态度
-    attitude = detect_player_attitude(payload.player_message)
-    attitude_hint = _get_attitude_hint(attitude)
-
     try:
         history = memory_store.load_history(memory_npc_id)
         recent_history = history[-settings.npc_memory_turns :]
-
-        # 构建带态度提示的系统提示词
-        system_prompt_with_attitude = (
-            f"{system_prompt}\n\n"
-            f"【当前对话情境】玩家当前的态度是：{attitude_hint}\n"
-            "请根据上述态度标签调整你的回复方式和情绪反应。"
-        )
-
-        messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt_with_attitude}]
+        messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
         for exchange in recent_history:
             messages.append({"role": "user", "content": exchange.player_message})
             messages.append({"role": "assistant", "content": exchange.npc_reply})
@@ -110,6 +150,17 @@ async def chat_route(payload: ChatRequest) -> ChatResponse:
 
         reply = await chat_with_llm(messages, settings=settings)
         memory_store.save_exchange(memory_npc_id, payload.player_message, reply)
+
+        # 记录 token 使用（估算值）
+        token_logger = get_token_logger()
+        estimated_prompt = sum(len(m["content"]) // 4 for m in messages)
+        estimated_completion = len(reply) // 4
+        token_logger.log_usage(
+            npc_id=payload.npc_id,
+            prompt_tokens=estimated_prompt,
+            completion_tokens=estimated_completion,
+            model=settings.model_candidates[0],
+        )
     except MemoryStoreError as exc:
         raise HTTPException(status_code=500, detail="NPC memory service is unavailable.") from exc
     except LlmConfigurationError as exc:
@@ -120,6 +171,66 @@ async def chat_route(payload: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     return ChatResponse(npc_id=payload.npc_id, reply=reply)
+
+
+@app.get("/mode")
+async def get_app_mode() -> dict:
+    """获取当前运行模式"""
+    return {
+        "mode": settings.app_mode,
+        "description": "development" if settings.app_mode == "development" else "演示模式 - 不消耗 API Credits",
+    }
+
+
+@app.get("/health")
+async def health_check() -> dict:
+    """健康检查端点"""
+    return {
+        "status": "healthy",
+        "mode": settings.app_mode,
+    }
+
+
+@app.get("/stats/token", response_model=TokenStatsResponse)
+async def get_token_stats(days: int = 7) -> TokenStatsResponse:
+    """
+    获取 Token 使用统计
+
+    Query Parameters:
+        days: 统计天数，默认 7 天
+    """
+    token_logger = get_token_logger()
+    stats = token_logger.get_daily_stats()
+    # days 参数保留用于未来扩展（如按日期范围查询）
+
+    return TokenStatsResponse(
+        date=stats["date"],
+        request_count=stats["request_count"],
+        total_tokens=stats["total_tokens"],
+        prompt_tokens=stats["total_prompt_tokens"],
+        completion_tokens=stats["total_completion_tokens"],
+        avg_response_time_ms=stats["avg_response_time_ms"],
+    )
+
+
+@app.post("/demo/reset")
+async def reset_demo_state(npc_id: str | None = None) -> dict:
+    """
+    重置演示模式状态
+
+    Query Parameters:
+        npc_id: 可选，重置指定 NPC 的状态；不传则重置所有
+    """
+    if settings.app_mode != "demo":
+        raise HTTPException(status_code=400, detail="仅演示模式下可用")
+
+    demo_engine = get_demo_engine()
+    demo_engine.reset_state(npc_id)
+
+    return {
+        "success": True,
+        "message": f"已重置 {'所有' if npc_id is None else npc_id} 的演示状态",
+    }
 
 
 def _get_attitude_hint(attitude: str) -> str:

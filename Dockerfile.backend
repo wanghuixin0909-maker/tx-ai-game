@@ -1,0 +1,41 @@
+# Python 构建阶段
+FROM python:3.12-slim AS backend-builder
+
+WORKDIR /app
+
+# 安装构建依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY backend/requirements.txt .
+
+# 安装 Python 依赖
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# 运行阶段
+FROM python:3.12-slim AS backend-production
+
+WORKDIR /app
+
+# 安装运行时依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# 从构建阶段复制依赖
+COPY --from=backend-builder /install /usr/local
+
+# 复制后端代码
+COPY backend/ ./backend/
+
+# 创建非 root 用户
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# 使用 tini 作为 init 系统
+ENTRYPOINT ["tini", "--"]
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
