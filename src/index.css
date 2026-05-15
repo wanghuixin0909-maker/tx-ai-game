@@ -189,12 +189,12 @@ textarea::placeholder {
 
 .panel-heading {
   color: #ccd5e0;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.2em;
 }
 
 .panel-subtitle {
   color: var(--text-muted);
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .soft-text {
