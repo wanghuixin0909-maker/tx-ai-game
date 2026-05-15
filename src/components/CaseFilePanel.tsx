@@ -23,6 +23,7 @@ interface CaseFilePanelProps {
   discoveredClueIds: string[];
   keyTestimonies: CaseTestimony[];
   progressLabel: string;
+  onClueUnlock?: () => void;
 }
 
 function getTestimonyKind(testimony: CaseTestimony): TestimonyKind {
@@ -82,9 +83,10 @@ export function CaseFilePanel({
   discoveredClueIds,
   keyTestimonies,
   progressLabel,
+  onClueUnlock,
 }: CaseFilePanelProps) {
   const [activeTab, setActiveTab] = useState<CaseFileTab>("summary");
-  const { clueStates } = useClueUnlockAnimation(discoveredClueIds);
+  const { clueStates } = useClueUnlockAnimation(discoveredClueIds, onClueUnlock);
   const clueById = new Map(clues.map((clue) => [clue.id, clue]));
   const discoveredClues = discoveredClueIds
     .map((clueId) => clueById.get(clueId))

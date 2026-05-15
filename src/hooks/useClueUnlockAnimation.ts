@@ -11,17 +11,16 @@ interface ClueUnlockState {
 /**
  * Hook to track newly unlocked clues and manage animation states.
  * @param discoveredClueIds - Current array of discovered clue IDs
- * @param soundEnabled - Whether to play unlock sound
- * @returns Object with newly unlocked clue IDs set and sound trigger ref
+ * @param onUnlock - Optional callback when new clues are unlocked
+ * @returns Object with newly unlocked clue IDs set and clue states
  */
 export function useClueUnlockAnimation(
   discoveredClueIds: string[],
-  soundEnabled: boolean = false,
+  onUnlock?: () => void,
 ) {
   const previousIdsRef = useRef<string[]>([]);
   const [newlyUnlockedIds, setNewlyUnlockedIds] = useState<Set<string>>(new Set());
   const [clueStates, setClueStates] = useState<Record<string, ClueUnlockState>>({});
-  const soundTriggerRef = useRef(0);
 
   useEffect(() => {
     const previousIds = new Set(previousIdsRef.current);
@@ -29,7 +28,6 @@ export function useClueUnlockAnimation(
 
     if (newIds.length > 0) {
       setNewlyUnlockedIds(new Set(newIds));
-      soundTriggerRef.current += 1;
 
       setClueStates((prev) => {
         const updated = { ...prev };
@@ -39,9 +37,7 @@ export function useClueUnlockAnimation(
         return updated;
       });
 
-      if (soundEnabled) {
-        playUnlockSound();
-      }
+      onUnlock?.();
 
       setTimeout(() => {
         setClueStates((prev) => {
@@ -74,35 +70,12 @@ export function useClueUnlockAnimation(
     }
 
     previousIdsRef.current = [...discoveredClueIds];
-  }, [discoveredClueIds, soundEnabled]);
+  }, [discoveredClueIds, onUnlock]);
 
   return {
     newlyUnlockedIds,
     clueStates,
-    soundTriggerRef,
   };
-}
-
-function playUnlockSound() {
-  try {
-    const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(1320, audioContext.currentTime + 0.08);
-
-    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
-  } catch {
-    // Audio not available, silently fail
-  }
 }
 
 export function isClueNewlyUnlocked(clueId: string, newlyUnlockedIds: Set<string>): boolean {
