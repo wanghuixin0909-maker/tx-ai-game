@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { CaseMeta, ChatMessage, Npc } from "../types/game";
+import { CaseBriefCard } from "./CaseBriefCard";
 import { PanelFrame } from "./PanelFrame";
 
 interface ChatWindowProps {
@@ -46,8 +47,11 @@ export function ChatWindow({
           </span>
         </div>
         <p className="mt-3 max-w-3xl text-[0.98rem] leading-7 text-[#D6DEEA]">
-          当前目标: {caseFile.objective}
+          {caseFile.briefing}
         </p>
+        <div className="mt-5">
+          <CaseBriefCard caseFile={caseFile} mode="compact" />
+        </div>
         <div className="mt-5 flex flex-wrap items-center gap-3.5">
           <div
             className="cyber-card flex items-center gap-3 rounded-[22px] px-3.5 py-3"
@@ -71,9 +75,10 @@ export function ChatWindow({
           </div>
           <div className="cyber-card rounded-[22px] px-3.5 py-3">
             <p className="text-xs uppercase tracking-[0.22em] text-[#B8C2CF]">
-              心理画像
+              审问焦点
             </p>
-            <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">{activeNpc.tagline}</p>
+            <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">{activeNpc.investigationFocus}</p>
+            <p className="mt-2 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
           </div>
         </div>
       </div>

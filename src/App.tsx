@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CaseFilePanel } from "./components/CaseFilePanel";
 import { ChatWindow } from "./components/ChatWindow";
-import { CluePanel } from "./components/CluePanel";
 import { NpcSidebar } from "./components/NpcSidebar";
 import { PlayerInput } from "./components/PlayerInput";
 import {
@@ -12,13 +12,174 @@ import {
   starterClueIds,
 } from "./data/mockGame";
 import { ChatApiError, fetchNpcReply } from "./lib/chatApi";
-import type { ChatMessage, GameState, MobilePanel } from "./types/game";
+import {
+  clearGameMemory,
+  loadGameMemory,
+  MAX_CASE_TESTIMONIES,
+  MAX_RECENT_MESSAGES_PER_NPC,
+  saveCaseFileMemory,
+  saveRecentChatMemory,
+} from "./lib/localGameStorage";
+import type {
+  CaseTestimony,
+  ChatMessage,
+  GameState,
+  MobilePanel,
+  NpcRuntimeState,
+} from "./types/game";
 
 const mobilePanels: Array<{ id: MobilePanel; label: string }> = [
   { id: "chat", label: "CHAT" },
   { id: "npcs", label: "NPCS" },
-  { id: "clues", label: "CLUES" },
+  { id: "case-file", label: "FILE" },
 ];
+
+const CASE_PHASES = [
+  { minClues: clues.length, label: "Phase 05 / Final Reconstruction" },
+  { minClues: 5, label: "Phase 04 / 真凶锁定" },
+  { minClues: 3, label: "Phase 03 / 证词对照" },
+  { minClues: 2, label: "Phase 02 / 嫌疑排查" },
+  { minClues: 0, label: "Phase 01 / 案件简报" },
+] as const;
+
+const validNpcIds = npcs.map((npc) => npc.id);
+const validClueIds = clues.map((clue) => clue.id);
+const npcNameById = Object.fromEntries(npcs.map((npc) => [npc.id, npc.name]));
+
+function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((message) => ({
+    ...message,
+    unlockClueIds: message.unlockClueIds ? [...message.unlockClueIds] : undefined,
+  }));
+}
+
+function cloneConversations(
+  conversations: Record<string, ChatMessage[]>,
+): Record<string, ChatMessage[]> {
+  return Object.fromEntries(
+    Object.entries(conversations).map(([npcId, messages]) => [npcId, cloneMessages(messages)]),
+  );
+}
+
+function trimConversation(messages: ChatMessage[]): ChatMessage[] {
+  return messages.slice(-MAX_RECENT_MESSAGES_PER_NPC);
+}
+
+function createInitialNpcStates(): Record<string, NpcRuntimeState> {
+  return Object.fromEntries(
+    npcs.map((npc) => [
+      npc.id,
+      {
+        status: npc.status,
+        trustLevel: npc.trustLevel,
+      },
+    ]),
+  );
+}
+
+function getCasePhase(discoveredCount: number): string {
+  return (
+    CASE_PHASES.find((phase) => discoveredCount >= phase.minClues)?.label
+    ?? "Phase 01 / 案件简报"
+  );
+}
+
+function createKeyTestimony(message: ChatMessage): CaseTestimony | null {
+  if (message.speakerType !== "npc" || !message.unlockClueIds?.length) {
+    return null;
+  }
+
+  const npcName = npcNameById[message.speakerId];
+
+  if (!npcName) {
+    return null;
+  }
+
+  return {
+    messageId: message.id,
+    npcId: message.speakerId,
+    npcName,
+    text: message.text,
+    timestamp: message.timestamp,
+    linkedClueIds: Array.from(new Set(message.unlockClueIds)),
+  };
+}
+
+function appendKeyTestimony(
+  testimonies: CaseTestimony[],
+  testimony: CaseTestimony | null,
+): CaseTestimony[] {
+  if (!testimony || testimonies.some((item) => item.messageId === testimony.messageId)) {
+    return testimonies;
+  }
+
+  return [...testimonies, testimony].slice(-MAX_CASE_TESTIMONIES);
+}
+
+function buildKeyTestimoniesFromConversations(
+  conversations: Record<string, ChatMessage[]>,
+): CaseTestimony[] {
+  let testimonies: CaseTestimony[] = [];
+
+  npcs.forEach((npc) => {
+    (conversations[npc.id] ?? []).forEach((message) => {
+      testimonies = appendKeyTestimony(testimonies, createKeyTestimony(message));
+    });
+  });
+
+  return testimonies;
+}
+
+function mergeKeyTestimonies(
+  storedTestimonies: CaseTestimony[],
+  derivedTestimonies: CaseTestimony[],
+): CaseTestimony[] {
+  return derivedTestimonies.reduce(
+    (collected, testimony) => appendKeyTestimony(collected, testimony),
+    [...storedTestimonies],
+  );
+}
+
+function createInitialGameState(): GameState {
+  const conversations = cloneConversations(initialConversations);
+  const discoveredClueIds = [...starterClueIds];
+
+  return {
+    activeCaseId: caseFile.id,
+    selectedNpcId: npcs[0].id,
+    draftMessage: "",
+    conversations,
+    discoveredClueIds,
+    keyTestimonies: buildKeyTestimoniesFromConversations(conversations),
+    mobilePanel: "chat",
+    casePhase: getCasePhase(discoveredClueIds.length),
+    npcStates: createInitialNpcStates(),
+  };
+}
+
+function createPersistedCaseFile(gameState: GameState) {
+  return {
+    activeCaseId: gameState.activeCaseId,
+    discoveredClueIds: gameState.discoveredClueIds,
+    casePhase: gameState.casePhase,
+    keyTestimonies: gameState.keyTestimonies,
+  };
+}
+
+function createPersistedRecentChats(gameState: GameState) {
+  return {
+    selectedNpcId: gameState.selectedNpcId,
+    conversations: gameState.conversations,
+    npcStates: gameState.npcStates,
+  };
+}
+
+function createPersistedMemory(gameState: GameState) {
+  return {
+    ...createPersistedCaseFile(gameState),
+    ...createPersistedRecentChats(gameState),
+  };
+}
 
 function createPlayerMessage(text: string): ChatMessage {
   return {
@@ -76,43 +237,117 @@ function appendNpcReplyToState(
   const updatedIds = new Set(current.discoveredClueIds);
   unlockClueIds?.forEach((clueId) => updatedIds.add(clueId));
 
+  const npcMessage = createNpcMessage(npcId, replyText, unlockClueIds);
+
   return {
     ...current,
     conversations: {
       ...current.conversations,
-      [npcId]: [
-        ...(current.conversations[npcId] ?? []),
-        createNpcMessage(npcId, replyText, unlockClueIds),
-      ],
+      [npcId]: trimConversation([...(current.conversations[npcId] ?? []), npcMessage]),
     },
     discoveredClueIds: [...updatedIds],
+    keyTestimonies: appendKeyTestimony(current.keyTestimonies, createKeyTestimony(npcMessage)),
+    casePhase: getCasePhase(updatedIds.size),
   };
 }
 
 function getProgressLabel(discoveredCount: number) {
   if (discoveredCount >= 5) {
-    return "Signal almost complete";
+    return "关键证据已接近闭环";
   }
 
   if (discoveredCount >= 3) {
-    return "Pattern emerging";
+    return "嫌疑链正在成形";
   }
 
-  return "Early reconstruction";
+  return "先建立案情全貌";
 }
 
 export default function App() {
-  const [gameState, setGameState] = useState<GameState>({
-    activeCaseId: caseFile.id,
-    selectedNpcId: npcs[0].id,
-    draftMessage: "",
-    conversations: initialConversations,
-    discoveredClueIds: starterClueIds,
-    mobilePanel: "chat",
+  const persistenceReadyRef = useRef(false);
+  const skipCaseFilePersistenceRef = useRef(false);
+  const skipRecentChatPersistenceRef = useRef(false);
+  const requestEpochRef = useRef(0);
+
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const initialState = createInitialGameState();
+    const restoredMemory = loadGameMemory(
+      createPersistedMemory(initialState),
+      validNpcIds,
+      validClueIds,
+    );
+    const conversations = cloneConversations(restoredMemory.conversations);
+    const mergedTestimonies = mergeKeyTestimonies(
+      restoredMemory.keyTestimonies,
+      buildKeyTestimoniesFromConversations(conversations),
+    );
+    const discoveredClueIds =
+      restoredMemory.discoveredClueIds.length > 0
+        ? restoredMemory.discoveredClueIds
+        : [...starterClueIds];
+
+    return {
+      ...initialState,
+      ...restoredMemory,
+      draftMessage: "",
+      conversations,
+      discoveredClueIds,
+      keyTestimonies: mergedTestimonies,
+      mobilePanel: "chat",
+      casePhase: getCasePhase(discoveredClueIds.length),
+    };
   });
   const [pendingNpcIds, setPendingNpcIds] = useState<string[]>([]);
 
-  const activeNpc = npcs.find((npc) => npc.id === gameState.selectedNpcId) ?? npcs[0];
+  useEffect(() => {
+    if (!persistenceReadyRef.current) {
+      return;
+    }
+
+    if (skipCaseFilePersistenceRef.current) {
+      skipCaseFilePersistenceRef.current = false;
+      return;
+    }
+
+    saveCaseFileMemory(createPersistedCaseFile(gameState));
+  }, [
+    gameState.activeCaseId,
+    gameState.casePhase,
+    gameState.discoveredClueIds,
+    gameState.keyTestimonies,
+  ]);
+
+  useEffect(() => {
+    if (!persistenceReadyRef.current) {
+      return;
+    }
+
+    if (skipRecentChatPersistenceRef.current) {
+      skipRecentChatPersistenceRef.current = false;
+      return;
+    }
+
+    saveRecentChatMemory(createPersistedRecentChats(gameState));
+  }, [gameState.conversations, gameState.npcStates]);
+
+  useEffect(() => {
+    persistenceReadyRef.current = true;
+  }, []);
+
+  const runtimeNpcs = npcs.map((npc) => ({
+    ...npc,
+    ...(gameState.npcStates[npc.id] ?? {
+      status: npc.status,
+      trustLevel: npc.trustLevel,
+    }),
+  }));
+  const activeNpc =
+    runtimeNpcs.find((npc) => npc.id === gameState.selectedNpcId) ?? runtimeNpcs[0];
+  const activeCaseFile = {
+    ...caseFile,
+    id: gameState.activeCaseId,
+    phase: gameState.casePhase,
+  };
   const activeMessages = gameState.conversations[activeNpc.id] ?? [];
 
   const discoveredClueIdSet = new Set(gameState.discoveredClueIds);
@@ -124,6 +359,7 @@ export default function App() {
       return;
     }
 
+    const requestEpoch = requestEpochRef.current;
     const playerMessage = createPlayerMessage(trimmed);
     const currentConversation = gameState.conversations[npcId] ?? [];
     const currentPlayerTurns = currentConversation.filter(
@@ -138,7 +374,7 @@ export default function App() {
       draftMessage: "",
       conversations: {
         ...current.conversations,
-        [npcId]: [...(current.conversations[npcId] ?? []), playerMessage],
+        [npcId]: trimConversation([...(current.conversations[npcId] ?? []), playerMessage]),
       },
     }));
     setPendingNpcIds((current) => [...current, npcId]);
@@ -149,6 +385,10 @@ export default function App() {
         playerMessage: trimmed,
       });
 
+      if (requestEpoch !== requestEpochRef.current) {
+        return;
+      }
+
       setGameState((current) =>
         appendNpcReplyToState(
           current,
@@ -158,24 +398,45 @@ export default function App() {
         ),
       );
     } catch (error) {
+      if (requestEpoch !== requestEpochRef.current) {
+        return;
+      }
+
       const fallbackMessage =
         error instanceof ChatApiError
-          ? `后端通信失败: ${error.message}`
-          : "后端通信失败，请稍后重试。";
+          ? `Backend request failed: ${error.message}`
+          : "Backend request failed. Please try again in a moment.";
 
       setGameState((current) => ({
         ...current,
         conversations: {
           ...current.conversations,
-          [npcId]: [
+          [npcId]: trimConversation([
             ...(current.conversations[npcId] ?? []),
             createSystemMessage(fallbackMessage),
-          ],
+          ]),
         },
       }));
     } finally {
+      if (requestEpoch !== requestEpochRef.current) {
+        return;
+      }
+
       setPendingNpcIds((current) => current.filter((item) => item !== npcId));
     }
+  };
+
+  const handleResetGame = () => {
+    if (!window.confirm("Reset Case and clear saved clues, testimony, and recent chats?")) {
+      return;
+    }
+
+    requestEpochRef.current += 1;
+    skipCaseFilePersistenceRef.current = true;
+    skipRecentChatPersistenceRef.current = true;
+    clearGameMemory();
+    setPendingNpcIds([]);
+    setGameState(createInitialGameState());
   };
 
   const selectNpc = (npcId: string) => {
@@ -186,7 +447,6 @@ export default function App() {
     }));
   };
 
-  const activeLinkedClues = clues.filter((clue) => clue.sourceNpcId === activeNpc.id).length;
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
 
@@ -201,11 +461,12 @@ export default function App() {
                 AI Detective Interface
               </p>
               <h1 className="mt-3 text-3xl font-bold tracking-[0.04em] text-slate-50 sm:text-[2.85rem]">
-                霓虹推理终端
+                NEON ECHO
               </h1>
               <p className="mt-4 max-w-3xl text-[0.98rem] leading-7 text-[#D6DEEA] sm:text-[1.02rem]">
-                在赛博都市的断电窗口里，逐个击穿 NPC 话术，拼合被重写的监控与权限链。所有数据均为 mock，
-                但交互闭环已可直接试玩。
+                你是受董事会密派的独立调查员。首席审计员
+                {activeCaseFile.brief.victim.name}
+                在断电前 37 秒身亡，你必须在四名关键对象的矛盾证词中找出真正凶手。
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -227,10 +488,14 @@ export default function App() {
               </div>
               <div className="cyber-card rounded-[24px] px-4 py-3.5">
                 <p className="text-[0.68rem] uppercase tracking-[0.26em] text-[#AEB8C5]">
-                  Linked Evidence
+                  Victim
                 </p>
-                <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">{activeLinkedClues}</p>
-                <p className="mt-1 text-sm text-[#D6DEEA]">与当前通道相关的碎片数量</p>
+                <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">
+                  {activeCaseFile.brief.victim.name}
+                </p>
+                <p className="mt-1 text-sm text-[#D6DEEA]">
+                  {activeCaseFile.brief.victim.identity}
+                </p>
               </div>
             </div>
           </div>
@@ -262,7 +527,7 @@ export default function App() {
         <div className="grid flex-1 gap-4 lg:hidden">
           <div className={gameState.mobilePanel === "npcs" ? "block" : "hidden"}>
             <NpcSidebar
-              npcs={npcs}
+              npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
               conversations={gameState.conversations}
               onSelect={selectNpc}
@@ -273,7 +538,7 @@ export default function App() {
             className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} min-h-0 flex-col gap-4`}
           >
             <ChatWindow
-              caseFile={caseFile}
+              caseFile={activeCaseFile}
               activeNpc={activeNpc}
               messages={activeMessages}
               progressLabel={progressLabel}
@@ -284,61 +549,28 @@ export default function App() {
                 setGameState((current) => ({ ...current, draftMessage }))
               }
               onSend={handleSendMessage}
+              onReset={handleResetGame}
               disabled={pendingActiveNpc}
               isLoading={pendingActiveNpc}
             />
           </div>
 
-          <div className={gameState.mobilePanel === "clues" ? "block" : "hidden"}>
-            <CluePanel
+          <div className={gameState.mobilePanel === "case-file" ? "block" : "hidden"}>
+            <CaseFilePanel
+              caseFile={activeCaseFile}
               clues={clues}
-              activeNpc={activeNpc}
+              npcs={runtimeNpcs}
               discoveredClueIds={discoveredClueIdSet}
-            />
-          </div>
-        </div>
-
-        <div className="hidden flex-1 gap-4 lg:grid xl:hidden lg:grid-cols-[300px_minmax(0,1fr)]">
-          <div>
-            {gameState.mobilePanel === "clues" ? (
-              <CluePanel
-                clues={clues}
-                activeNpc={activeNpc}
-                discoveredClueIds={discoveredClueIdSet}
-              />
-            ) : (
-              <NpcSidebar
-                npcs={npcs}
-                selectedNpcId={gameState.selectedNpcId}
-                conversations={gameState.conversations}
-                onSelect={selectNpc}
-              />
-            )}
-          </div>
-
-          <div className="min-h-0 flex flex-col gap-4">
-            <ChatWindow
-              caseFile={caseFile}
-              activeNpc={activeNpc}
-              messages={activeMessages}
+              keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
             />
-            <PlayerInput
-              draftMessage={gameState.draftMessage}
-              onDraftChange={(draftMessage) =>
-                setGameState((current) => ({ ...current, draftMessage }))
-              }
-              onSend={handleSendMessage}
-              disabled={pendingActiveNpc}
-              isLoading={pendingActiveNpc}
-            />
           </div>
         </div>
 
-        <div className="hidden flex-1 gap-4 xl:grid xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+        <div className="hidden flex-1 gap-4 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px]">
           <div>
             <NpcSidebar
-              npcs={npcs}
+              npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
               conversations={gameState.conversations}
               onSelect={selectNpc}
@@ -347,7 +579,7 @@ export default function App() {
 
           <div className="min-h-0 flex flex-col gap-4">
             <ChatWindow
-              caseFile={caseFile}
+              caseFile={activeCaseFile}
               activeNpc={activeNpc}
               messages={activeMessages}
               progressLabel={progressLabel}
@@ -358,16 +590,20 @@ export default function App() {
                 setGameState((current) => ({ ...current, draftMessage }))
               }
               onSend={handleSendMessage}
+              onReset={handleResetGame}
               disabled={pendingActiveNpc}
               isLoading={pendingActiveNpc}
             />
           </div>
 
           <div>
-            <CluePanel
+            <CaseFilePanel
+              caseFile={activeCaseFile}
               clues={clues}
-              activeNpc={activeNpc}
+              npcs={runtimeNpcs}
               discoveredClueIds={discoveredClueIdSet}
+              keyTestimonies={gameState.keyTestimonies}
+              progressLabel={progressLabel}
             />
           </div>
         </div>

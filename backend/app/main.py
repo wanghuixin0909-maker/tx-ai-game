@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from .case_bible import get_memory_npc_id
 from .llm import LlmConfigurationError, LlmTimeoutError, LlmUpstreamError, chat as chat_with_llm
 from .memory import MemoryStoreError, memory_store
 from .npc_prompts import get_npc_system_prompt
@@ -30,8 +31,10 @@ async def chat_route(payload: ChatRequest) -> ChatResponse:
     if system_prompt is None:
         raise HTTPException(status_code=400, detail="Unknown npc_id.")
 
+    memory_npc_id = get_memory_npc_id(payload.npc_id)
+
     try:
-        history = memory_store.load_history(payload.npc_id)
+        history = memory_store.load_history(memory_npc_id)
         recent_history = history[-settings.npc_memory_turns :]
         messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
         for exchange in recent_history:
@@ -40,7 +43,7 @@ async def chat_route(payload: ChatRequest) -> ChatResponse:
         messages.append({"role": "user", "content": payload.player_message})
 
         reply = await chat_with_llm(messages, settings=settings)
-        memory_store.save_exchange(payload.npc_id, payload.player_message, reply)
+        memory_store.save_exchange(memory_npc_id, payload.player_message, reply)
     except MemoryStoreError as exc:
         raise HTTPException(status_code=500, detail="NPC memory service is unavailable.") from exc
     except LlmConfigurationError as exc:

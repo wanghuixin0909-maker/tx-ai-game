@@ -24,7 +24,7 @@ export function NpcSidebar({
   return (
     <PanelFrame
       title="Network Personas"
-      subtitle="在嫌疑人、目击者与线人之间切换，读取他们的最新状态。"
+      subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
       className="h-full min-h-[24rem] p-5 sm:p-6"
     >
       <div className="space-y-3.5">

@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
     "allowImportingTsExtensions": false,
-    "resolveJsonModule": false,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -21,4 +21,3 @@
   },
   "include": ["src"]
 }
-
