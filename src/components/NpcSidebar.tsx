@@ -1,4 +1,5 @@
 import type { ChatMessage, Npc } from "../types/game";
+import { NpcAvatar } from "../assets/npc/NpcAvatar";
 import { PanelFrame } from "./PanelFrame";
 
 const statusLabel: Record<Npc["status"], string> = {
@@ -50,17 +51,7 @@ export function NpcSidebar({
                 }}
               />
               <div className="flex h-full gap-3">
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-xs font-semibold tracking-[0.2em]"
-                  style={{
-                    borderColor: `${npc.accentColor}66`,
-                    color: npc.accentColor,
-                    background: `${npc.accentColor}14`,
-                    boxShadow: `0 0 10px ${npc.accentColor}14`,
-                  }}
-                >
-                  {npc.avatarSeed}
-                </div>
+              <NpcAvatar npc={npc} size="md" showRing={isActive} />
                 <div className="flex min-w-0 flex-1 flex-col justify-between">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">

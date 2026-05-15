@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage, Npc } from "../types/game";
+import { NpcIdentityCard } from "../assets/npc/NpcAvatar";
 import { PanelFrame } from "./PanelFrame";
 
 interface ChatWindowProps {
@@ -19,42 +20,10 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
       title="Interrogation Feed"
       className="chat-panel flex h-full min-h-[38vh] flex-col p-3 sm:min-h-[26rem] sm:p-5"
     >
-      <div className="cyber-card mb-4 rounded-[24px] px-4 py-3.5 sm:px-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
-              Current NPC
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <div
-                className="h-2.5 w-2.5 rounded-full animate-pulse"
-                style={{ backgroundColor: activeNpc.accentColor }}
-              />
-              <p className="text-[1.08rem] font-semibold tracking-[0.015em] text-[#E2E8F0] sm:text-[1.2rem]">
-                {activeNpc.name}
-              </p>
-              <span className="terminal-pill rounded-full px-3 py-1 text-[0.68rem] uppercase tracking-[0.14em]">
-                {activeNpc.role}
-              </span>
-            </div>
-          </div>
-          <div
-            className="rounded-[20px] border px-3 py-2"
-            style={{
-              borderColor: `${activeNpc.accentColor}40`,
-              background: `linear-gradient(180deg, ${activeNpc.accentColor}16, rgba(255,255,255,0.03))`,
-            }}
-          >
-            <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
-              Status
-            </p>
-            <p className="mt-1 text-sm font-medium uppercase text-[#E2E8F0]">
-              {activeNpc.status}
-            </p>
-          </div>
-        </div>
+      <div className="mb-4 space-y-3">
+        <NpcIdentityCard npc={activeNpc} />
 
-        <div className="mt-3 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
+        <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
             <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
               Interrogation Focus
