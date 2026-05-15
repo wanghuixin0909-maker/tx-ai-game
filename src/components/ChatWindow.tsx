@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage, Npc } from "../types/game";
+import { NpcAvatar } from "../assets/npc/NpcAvatar";
 import { PanelFrame } from "./PanelFrame";
 
 interface ChatWindowProps {
@@ -19,55 +20,67 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
       title="Interrogation Feed"
       className="chat-panel flex h-full min-h-[26rem] flex-col p-4 sm:min-h-[30rem] sm:p-5"
     >
-      <div className="cyber-card mb-4 rounded-[24px] px-4 py-3.5 sm:px-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
-              Current NPC
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <div
-                className="h-2.5 w-2.5 rounded-full animate-pulse"
-                style={{ backgroundColor: activeNpc.accentColor }}
-              />
-              <p className="text-[1.08rem] font-semibold tracking-[0.015em] text-[#E2E8F0] sm:text-[1.2rem]">
+      {/* 身份卡片头部 */}
+      <div
+        className="mb-4 rounded-[24px] border px-4 py-3.5 sm:px-5"
+        style={{
+          borderColor: `${activeNpc.accentColor}30`,
+          background: `linear-gradient(135deg, ${activeNpc.accentColor}08, rgba(255,255,255,0.02))`,
+        }}
+      >
+        <div className="flex items-center gap-4">
+          {/* 头像 */}
+          <NpcAvatar npc={activeNpc} size="xl" showRing={true} showGlow={true} />
+
+          {/* 身份信息 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2
+                className="text-[1.15rem] font-bold tracking-[0.02em]"
+                style={{ color: activeNpc.accentColor }}
+              >
                 {activeNpc.name}
-              </p>
-              <span className="terminal-pill rounded-full px-3 py-1 text-[0.68rem] uppercase tracking-[0.14em]">
+              </h2>
+              <span className="terminal-pill rounded-full px-3 py-1 text-[0.65rem] uppercase tracking-[0.14em]">
                 {activeNpc.role}
               </span>
+              <span
+                className="rounded-full border px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em]"
+                style={{
+                  borderColor: `${activeNpc.accentColor}50`,
+                  color: activeNpc.accentColor,
+                }}
+              >
+                T{activeNpc.trustLevel}
+              </span>
             </div>
+
+            <p className="mt-2 text-sm leading-5 text-[#D6DEEA]">
+              {activeNpc.investigationFocus}
+            </p>
           </div>
+
+          {/* 状态 */}
           <div
-            className="rounded-[20px] border px-3 py-2"
+            className="hidden shrink-0 rounded-[20px] border px-3 py-2 sm:block"
             style={{
               borderColor: `${activeNpc.accentColor}40`,
-              background: `linear-gradient(180deg, ${activeNpc.accentColor}16, rgba(255,255,255,0.03))`,
+              background: `linear-gradient(180deg, ${activeNpc.accentColor}12, rgba(255,255,255,0.02))`,
             }}
           >
-            <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
+            <p className="text-[0.6rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
               Status
             </p>
-            <p className="mt-1 text-sm font-medium uppercase text-[#E2E8F0]">
+            <p className="mt-1 text-sm font-medium uppercase" style={{ color: activeNpc.accentColor }}>
               {activeNpc.status}
             </p>
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
-          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-              Interrogation Focus
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[#D6DEEA]">{activeNpc.investigationFocus}</p>
-          </div>
-          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-              Profile Note
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
-          </div>
-        </div>
+        {/* 签名语 */}
+        <p className="mt-3 text-[0.78rem] leading-5 text-[#AEB8C5]">
+          {activeNpc.tagline}
+        </p>
       </div>
 
       <div className="chat-feed min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1">
