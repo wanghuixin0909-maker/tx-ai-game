@@ -78,10 +78,6 @@ export function useClueUnlockAnimation(
   };
 }
 
-export function isClueNewlyUnlocked(clueId: string, newlyUnlockedIds: Set<string>): boolean {
-  return newlyUnlockedIds.has(clueId);
-}
-
 export function shouldShowNewBadge(clueId: string, clueStates: Record<string, ClueUnlockState>): boolean {
   return clueStates[clueId]?.showBadge ?? false;
 }

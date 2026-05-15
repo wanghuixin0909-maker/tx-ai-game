@@ -86,7 +86,9 @@ export function CaseFilePanel({
   onClueUnlock,
 }: CaseFilePanelProps) {
   const [activeTab, setActiveTab] = useState<CaseFileTab>("summary");
-  const { clueStates } = useClueUnlockAnimation(discoveredClueIds, onClueUnlock);
+  const { newlyUnlockedIds, clueStates } = useClueUnlockAnimation(discoveredClueIds, onClueUnlock);
+
+  void newlyUnlockedIds;
   const clueById = new Map(clues.map((clue) => [clue.id, clue]));
   const discoveredClues = discoveredClueIds
     .map((clueId) => clueById.get(clueId))

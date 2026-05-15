@@ -1,12 +1,11 @@
 import type { Clue, Npc } from "../types/game";
 import { PanelFrame } from "./PanelFrame";
-import { isClueNewlyUnlocked, shouldShowNewBadge } from "../hooks/useClueUnlockAnimation";
+import { shouldShowNewBadge } from "../hooks/useClueUnlockAnimation";
 
 interface CluePanelProps {
   clues: Clue[];
   activeNpc: Npc;
   discoveredClueIds: Set<string>;
-  newlyUnlockedIds?: Set<string>;
   clueStates?: Record<string, { isNewlyUnlocked: boolean; showBadge: boolean }>;
 }
 
@@ -14,7 +13,6 @@ export function CluePanel({
   clues,
   activeNpc,
   discoveredClueIds,
-  newlyUnlockedIds = new Set(),
   clueStates = {},
 }: CluePanelProps) {
   return (
@@ -32,7 +30,8 @@ export function CluePanel({
         {clues.map((clue) => {
           const unlocked = discoveredClueIds.has(clue.id);
           const relatedToActiveNpc = clue.sourceNpcId === activeNpc.id;
-          const isNewlyUnlocked = isClueNewlyUnlocked(clue.id, newlyUnlockedIds);
+          const clueState = clueStates[clue.id];
+          const isNewlyUnlocked = clueState?.isNewlyUnlocked ?? false;
           const showBadge = shouldShowNewBadge(clue.id, clueStates);
 
           return (
