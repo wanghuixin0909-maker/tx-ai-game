@@ -105,7 +105,7 @@ export function CaseFilePanel({
     <PanelFrame
       title="Case File"
       subtitle="案件信息按摘要、证词、线索分类整理。"
-      className="flex h-full min-h-[24rem] flex-col overflow-hidden p-4 sm:p-5"
+      className="flex h-full min-h-0 flex-col overflow-hidden p-4 sm:p-5"
       action={
         <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
           {discoveredClues.length}/{clues.length} records

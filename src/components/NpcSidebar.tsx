@@ -25,9 +25,9 @@ export function NpcSidebar({
     <PanelFrame
       title="Network Personas"
       subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
-      className="h-full min-h-[24rem] p-5 sm:p-6"
+      className="flex h-full min-h-0 flex-col overflow-hidden p-5 sm:p-6"
     >
-      <div className="space-y-3.5">
+      <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-1">
         {npcs.map((npc) => {
           const latestMessage = conversations[npc.id]?.at(-1);
           const isActive = npc.id === selectedNpcId;

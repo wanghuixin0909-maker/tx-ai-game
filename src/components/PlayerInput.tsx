@@ -16,7 +16,7 @@ export function PlayerInput({
   isLoading = false,
 }: PlayerInputProps) {
   return (
-    <div className="cyber-panel p-4 sm:p-5">
+    <div className="cyber-panel shrink-0 overflow-visible p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center gap-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-[#AEB8C5]">
         <span className="terminal-pill rounded-full px-2.5 py-1">Prompt Lane</span>
         <span className="rounded-full border border-white/8 bg-[rgba(142,178,193,0.08)] px-2.5 py-1 text-[#D7DEE7]">
@@ -35,7 +35,7 @@ export function PlayerInput({
           }}
           rows={3}
           placeholder="直接追问作案时间线、死者关系、权限来源，或让对方解释证词矛盾。"
-          className="min-h-[104px] flex-1 resize-none rounded-[24px] border border-white/8 bg-white/[0.05] px-4 py-3.5 text-[0.96rem] leading-7 text-slate-50 outline-none transition placeholder:text-slate-400 focus:border-white/10 focus:bg-white/[0.07] focus:shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
+          className="min-h-[104px] w-full flex-1 resize-none rounded-[24px] border border-white/8 bg-white/[0.05] px-4 py-3.5 text-[0.96rem] leading-7 text-slate-50 outline-none transition placeholder:text-slate-400 focus:border-white/10 focus:bg-white/[0.07] focus:shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
         />
         <div className="flex w-full shrink-0 flex-col justify-between gap-3 md:w-56">
           <button
