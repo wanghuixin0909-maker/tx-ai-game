@@ -540,7 +540,7 @@ export default function App() {
           </div>
 
           <div
-            className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} flex min-h-[55vh] flex-col sm:min-h-[60vh]`}
+            className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} min-h-0 flex-col gap-3.5`}
           >
             <ChatWindow
               activeNpc={activeNpc}

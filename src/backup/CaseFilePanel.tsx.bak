@@ -112,32 +112,22 @@ export function CaseFilePanel({
         </div>
       }
     >
-      <div className="mb-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="mb-3 grid grid-cols-3 gap-2">
         {CASE_FILE_TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`terminal-tab flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-medium tracking-[0.08em] ${
+            className={`terminal-tab rounded-2xl px-3 py-2 text-xs font-medium tracking-[0.08em] ${
               activeTab === tab.id ? "is-active" : ""
             }`}
           >
             {tab.label}
-            {tab.id === "testimony" && keyTestimonies.length > 0 && (
-              <span className="rounded-full bg-[#ffd15e]/25 px-1.5 py-0.5 text-[0.58rem] text-[#ffd15e]">
-                {keyTestimonies.length}
-              </span>
-            )}
-            {tab.id === "clues" && discoveredClues.length > 0 && (
-              <span className="rounded-full bg-[#8eb2c1]/25 px-1.5 py-0.5 text-[0.58rem] text-[#8eb2c1]">
-                {discoveredClues.length}
-              </span>
-            )}
           </button>
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary sm:max-h-[calc(100vh-22rem)]">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {activeTab === "summary" ? (
           <div className="space-y-3">
             <section className="cyber-card rounded-[22px] p-3.5">
