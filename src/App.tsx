@@ -3,6 +3,8 @@ import { CaseFilePanel } from "./components/CaseFilePanel";
 import { ChatWindow } from "./components/ChatWindow";
 import { NpcSidebar } from "./components/NpcSidebar";
 import { PlayerInput } from "./components/PlayerInput";
+import { useClueUnlockAnimation } from "./hooks/useClueUnlockAnimation";
+import { useSoundEffects } from "./hooks/useSoundEffects";
 import {
   caseFile,
   clues,
@@ -449,6 +451,12 @@ export default function App() {
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
 
+  const { playSound } = useSoundEffects();
+  const { clueStates } = useClueUnlockAnimation(
+    gameState.discoveredClueIds,
+    () => playSound("unlock"),
+  );
+
   return (
     <main className="relative min-h-screen overflow-hidden px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
@@ -566,6 +574,7 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
+              clueStates={clueStates}
             />
           </div>
         </div>
@@ -605,6 +614,7 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
+              clueStates={clueStates}
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { CaseMeta, CaseTestimony, Clue, Npc } from "../types/game";
+import { CluePanel } from "./CluePanel";
 import { PanelFrame } from "./PanelFrame";
 
 type CaseFileTab = "summary" | "testimony" | "clues";
@@ -15,6 +16,11 @@ const TIMELINE_CLUE_IDS = new Set(["thermal-gap", "maintenance-route"]);
 const SPECIAL_SPEECH_CLUE_IDS = new Set(["ghost-proxy", "mirror-contract"]);
 const ANOMALY_CLUE_IDS = new Set(["thermal-gap", "maintenance-route"]);
 
+interface ClueUnlockState {
+  isNewlyUnlocked: boolean;
+  showBadge: boolean;
+}
+
 interface CaseFilePanelProps {
   caseFile: CaseMeta;
   clues: Clue[];
@@ -22,6 +28,7 @@ interface CaseFilePanelProps {
   discoveredClueIds: string[];
   keyTestimonies: CaseTestimony[];
   progressLabel: string;
+  clueStates?: Record<string, ClueUnlockState>;
   onClueUnlock?: () => void;
 }
 
@@ -82,6 +89,7 @@ export function CaseFilePanel({
   discoveredClueIds,
   keyTestimonies,
   progressLabel,
+  clueStates = {},
   onClueUnlock,
 }: CaseFilePanelProps) {
   const [activeTab, setActiveTab] = useState<CaseFileTab>("summary");
@@ -91,7 +99,6 @@ export function CaseFilePanel({
     .filter((clue): clue is Clue => Boolean(clue));
   const testimonyFeed = [...keyTestimonies].reverse();
   const clueTitleById = new Map(clues.map((clue) => [clue.id, clue.title]));
-  const npcNameById = new Map(npcs.map((npc) => [npc.id, npc.name]));
   const testimonyCounts = testimonyFeed.reduce(
     (counts, testimony) => {
       counts[getTestimonyKind(testimony)] += 1;
@@ -103,6 +110,8 @@ export function CaseFilePanel({
   const anomalyClues = discoveredClues.filter((clue) => ANOMALY_CLUE_IDS.has(clue.id));
 
   void onClueUnlock;
+
+  const activeNpc = npcs[0];
 
   return (
     <PanelFrame
@@ -262,69 +271,12 @@ export function CaseFilePanel({
               <StatCard label="监控异常" value={anomalyClues.length} />
             </div>
 
-            <section className="cyber-card rounded-[22px] p-3.5">
-              <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">证据</p>
-              <div className="mt-3 space-y-2.5">
-                {evidenceClues.length ? (
-                  evidenceClues.map((clue) => (
-                    <article
-                      key={clue.id}
-                      className="rounded-[20px] border border-white/8 bg-white/[0.05] p-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
-                          <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                            {clue.category}
-                          </p>
-                        </div>
-                        <span className="terminal-pill rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
-                          {npcNameById.get(clue.sourceNpcId) ?? clue.sourceNpcId.toUpperCase()}
-                        </span>
-                      </div>
-                      <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
-                        {clue.summary}
-                      </p>
-                    </article>
-                  ))
-                ) : (
-                  <EmptyState text="案件证据尚未形成稳定链条，继续追问相关 NPC。" />
-                )}
-              </div>
-            </section>
-
-            <section className="cyber-card rounded-[22px] p-3.5">
-              <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                监控异常
-              </p>
-              <div className="mt-3 space-y-2.5">
-                {anomalyClues.length ? (
-                  anomalyClues.map((clue) => (
-                    <article
-                      key={clue.id}
-                      className="rounded-[20px] border border-white/8 bg-[rgba(142,178,193,0.08)] p-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
-                          <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                            {clue.category}
-                          </p>
-                        </div>
-                        <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em] text-[#D7DEE7]">
-                          异常
-                        </span>
-                      </div>
-                      <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
-                        {clue.summary}
-                      </p>
-                    </article>
-                  ))
-                ) : (
-                  <EmptyState text="监控与路径异常尚未被完整恢复。" />
-                )}
-              </div>
-            </section>
+            <CluePanel
+              clues={clues}
+              activeNpc={activeNpc}
+              discoveredClueIds={new Set(discoveredClueIds)}
+              clueStates={clueStates}
+            />
           </div>
         ) : null}
       </div>
