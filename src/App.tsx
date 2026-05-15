@@ -350,7 +350,6 @@ export default function App() {
   };
   const activeMessages = gameState.conversations[activeNpc.id] ?? [];
 
-  const discoveredClueIdSet = new Set(gameState.discoveredClueIds);
   const handleSendMessage = async () => {
     const trimmed = gameState.draftMessage.trim();
     const npcId = activeNpc.id;
@@ -544,10 +543,8 @@ export default function App() {
             className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} min-h-0 flex-col gap-3.5`}
           >
             <ChatWindow
-              caseFile={activeCaseFile}
               activeNpc={activeNpc}
               messages={activeMessages}
-              progressLabel={progressLabel}
             />
             <PlayerInput
               draftMessage={gameState.draftMessage}
@@ -566,7 +563,7 @@ export default function App() {
               caseFile={activeCaseFile}
               clues={clues}
               npcs={runtimeNpcs}
-              discoveredClueIds={discoveredClueIdSet}
+              discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
             />
@@ -585,10 +582,8 @@ export default function App() {
 
           <div className="min-h-0 flex flex-col gap-3.5">
             <ChatWindow
-              caseFile={activeCaseFile}
               activeNpc={activeNpc}
               messages={activeMessages}
-              progressLabel={progressLabel}
             />
             <PlayerInput
               draftMessage={gameState.draftMessage}
@@ -607,7 +602,7 @@ export default function App() {
               caseFile={activeCaseFile}
               clues={clues}
               npcs={runtimeNpcs}
-              discoveredClueIds={discoveredClueIdSet}
+              discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
             />
