@@ -114,7 +114,7 @@ export function CaseFilePanel({
         </div>
       }
     >
-      <div className="mb-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="mb-3 shrink-0 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {CASE_FILE_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -139,7 +139,7 @@ export function CaseFilePanel({
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary sm:max-h-[calc(100vh-22rem)]">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
         {activeTab === "summary" ? (
           <div className="space-y-3">
             <section className="cyber-card rounded-[22px] p-3.5">

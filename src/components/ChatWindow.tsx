@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage, Npc } from "../types/game";
 import { NpcIdentityCard } from "../assets/npc/NpcAvatar";
-import { PanelFrame } from "./PanelFrame";
 
 interface ChatWindowProps {
   activeNpc: Npc;
@@ -10,17 +9,15 @@ interface ChatWindowProps {
 
 export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, activeNpc.id]);
 
   return (
-    <PanelFrame
-      title="Interrogation Feed"
-      className="chat-panel flex h-full min-h-[38vh] flex-col p-3 sm:min-h-[26rem] sm:p-5"
-    >
-      <div className="mb-4 space-y-3">
+    <section className="cyber-panel chat-panel flex h-full flex-col p-3 sm:p-5">
+      <div className="mb-4 shrink-0 space-y-3">
         <NpcIdentityCard npc={activeNpc} />
 
         <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
@@ -39,8 +36,11 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         </div>
       </div>
 
-      <div className="chat-feed scroll-primary min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1">
-        <div className="space-y-5">
+      <div
+        ref={messagesContainerRef}
+        className="chat-feed scroll-primary min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1"
+      >
+        <div className="space-y-5 py-2">
           {messages.map((message) => {
             const isPlayer = message.speakerType === "player";
             const isSystem = message.speakerType === "system";
@@ -76,6 +76,6 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
           <div ref={bottomRef} />
         </div>
       </div>
-    </PanelFrame>
+    </section>
   );
 }
