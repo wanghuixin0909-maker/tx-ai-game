@@ -456,11 +456,11 @@ export default function App() {
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
 
   return (
-    <main className="fixed inset-0 h-screen w-screen overflow-hidden px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+    <main className="relative min-h-screen px-4 py-5 sm:px-6 lg:px-8 xl:px-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-      <div className="relative flex h-full max-w-[1700px] flex-col gap-4">
-        <header className="cyber-panel shrink-0 p-4 sm:p-5">
-          <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
+      <div className="relative mx-auto max-w-[1700px]">
+        <header className="cyber-panel mb-5 p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <div className="flex items-center gap-4">
                 <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-[#B8C2CF]">
@@ -536,8 +536,8 @@ export default function App() {
           </div>
         </header>
 
-        <div className="xl:hidden shrink-0">
-          <div className="cyber-panel flex items-center gap-2 p-2">
+        <div className="xl:hidden">
+          <div className="cyber-panel mb-4 flex items-center gap-2 p-2">
             {mobilePanels.map((panel) => {
               const active = gameState.mobilePanel === panel.id;
 
@@ -557,11 +557,9 @@ export default function App() {
               );
             })}
           </div>
-        </div>
 
-        <div className="min-h-0 flex-1 lg:hidden">
-          <div className="flex h-full flex-col gap-3.5">
-            <div className={`${gameState.mobilePanel === "npcs" ? "flex" : "hidden"} flex-1 overflow-hidden`}>
+          <div className="flex flex-col gap-3.5">
+            <div className={gameState.mobilePanel === "npcs" ? "block" : "hidden"}>
               <NpcSidebar
                 npcs={runtimeNpcs}
                 selectedNpcId={gameState.selectedNpcId}
@@ -570,26 +568,26 @@ export default function App() {
               />
             </div>
 
-            <div
-              className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} flex-1 min-h-0 flex-col`}
-            >
+            <div className={gameState.mobilePanel === "chat" ? "block" : "hidden"}>
               <ChatWindow
                 activeNpc={activeNpc}
                 messages={activeMessages}
               />
-              <PlayerInput
-                draftMessage={gameState.draftMessage}
-                onDraftChange={(draftMessage) =>
-                  setGameState((current) => ({ ...current, draftMessage }))
-                }
-                onSend={handleSendMessage}
-                onReset={handleResetGame}
-                disabled={pendingActiveNpc}
-                isLoading={pendingActiveNpc}
-              />
+              <div className="mt-3.5">
+                <PlayerInput
+                  draftMessage={gameState.draftMessage}
+                  onDraftChange={(draftMessage) =>
+                    setGameState((current) => ({ ...current, draftMessage }))
+                  }
+                  onSend={handleSendMessage}
+                  onReset={handleResetGame}
+                  disabled={pendingActiveNpc}
+                  isLoading={pendingActiveNpc}
+                />
+              </div>
             </div>
 
-            <div className={`${gameState.mobilePanel === "case-file" ? "flex" : "hidden"} flex-1 overflow-hidden`}>
+            <div className={gameState.mobilePanel === "case-file" ? "block" : "hidden"}>
               <CaseFilePanel
                 caseFile={activeCaseFile}
                 clues={clues}
@@ -603,8 +601,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 gap-3.5 lg:flex">
-          <div className="shrink-0 overflow-hidden">
+        <div className="hidden flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px]">
+          <div>
             <NpcSidebar
               npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
@@ -613,7 +611,7 @@ export default function App() {
             />
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5">
             <ChatWindow
               activeNpc={activeNpc}
               messages={activeMessages}
@@ -630,7 +628,7 @@ export default function App() {
             />
           </div>
 
-          <div className="shrink-0 overflow-hidden">
+          <div>
             <CaseFilePanel
               caseFile={activeCaseFile}
               clues={clues}

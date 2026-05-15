@@ -16,7 +16,7 @@ export function PlayerInput({
   isLoading = false,
 }: PlayerInputProps) {
   return (
-    <div className="cyber-panel shrink-0 overflow-visible px-4 py-3 sm:px-5 sm:py-4">
+    <div className="cyber-panel shrink-0 overflow-visible px-4 py-3.5 sm:px-5 sm:py-4">
       <div className="mb-3 flex flex-wrap items-center gap-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-[#AEB8C5]">
         <span className="terminal-pill rounded-full px-2.5 py-1">Prompt Lane</span>
         <span className="rounded-full border border-white/8 bg-[rgba(142,178,193,0.08)] px-2.5 py-1 text-[#D7DEE7]">

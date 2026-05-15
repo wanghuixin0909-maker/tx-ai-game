@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { CaseMeta, CaseTestimony, Clue, Npc } from "../types/game";
-import { useClueUnlockAnimation } from "../hooks/useClueUnlockAnimation";
 import { PanelFrame } from "./PanelFrame";
 
 type CaseFileTab = "summary" | "testimony" | "clues";
@@ -86,9 +85,6 @@ export function CaseFilePanel({
   onClueUnlock,
 }: CaseFilePanelProps) {
   const [activeTab, setActiveTab] = useState<CaseFileTab>("summary");
-  const { newlyUnlockedIds, clueStates } = useClueUnlockAnimation(discoveredClueIds, onClueUnlock);
-
-  void newlyUnlockedIds;
   const clueById = new Map(clues.map((clue) => [clue.id, clue]));
   const discoveredClues = discoveredClueIds
     .map((clueId) => clueById.get(clueId))
@@ -105,7 +101,8 @@ export function CaseFilePanel({
   );
   const evidenceClues = discoveredClues.filter((clue) => !ANOMALY_CLUE_IDS.has(clue.id));
   const anomalyClues = discoveredClues.filter((clue) => ANOMALY_CLUE_IDS.has(clue.id));
-  const latestFindings = discoveredClues.slice(-3).reverse();
+
+  void onClueUnlock;
 
   return (
     <PanelFrame
@@ -266,87 +263,30 @@ export function CaseFilePanel({
             </div>
 
             <section className="cyber-card rounded-[22px] p-3.5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                    新发现内容
-                  </p>
-                  <p className="mt-1 text-sm text-[#D6DEEA]">最近解锁的案件更新。</p>
-                </div>
-              </div>
-              <div className="mt-3 space-y-2">
-                {latestFindings.length ? (
-                  latestFindings.map((clue) => {
-                    const clueState = clueStates[clue.id];
-                    const showNewBadge = clueState?.showBadge ?? false;
-                    return (
-                      <div
-                        key={clue.id}
-                        className={`rounded-[18px] border border-white/8 bg-[rgba(142,178,193,0.08)] px-3.5 py-2.5 ${
-                          clueState?.isNewlyUnlocked ? "clue-unlock-animate" : ""
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-medium text-[#E2E8F0]">{clue.title}</p>
-                          {showNewBadge ? (
-                            <span className="clue-new-badge rounded-full px-2.5 py-1 text-[0.62rem] uppercase tracking-[0.12em]">
-                              NEW CLUE
-                            </span>
-                          ) : (
-                            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[0.62rem] uppercase tracking-[0.12em] text-[#D7DEE7]">
-                              NEW
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1.5 text-[0.78rem] leading-5 text-[#AEB8C5]">
-                          来源 {npcNameById.get(clue.sourceNpcId) ?? clue.sourceNpcId.toUpperCase()}
-                        </p>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <EmptyState text="新的线索与证据会在审讯推进后自动归档到这里。" />
-                )}
-              </div>
-            </section>
-
-            <section className="cyber-card rounded-[22px] p-3.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">证据</p>
               <div className="mt-3 space-y-2.5">
                 {evidenceClues.length ? (
-                  evidenceClues.map((clue) => {
-                    const clueState = clueStates[clue.id];
-                    const showNewBadge = clueState?.showBadge ?? false;
-                    return (
-                      <article
-                        key={clue.id}
-                        className={`rounded-[20px] border border-white/8 bg-white/[0.05] p-3 ${
-                          clueState?.isNewlyUnlocked ? "clue-unlock-animate" : ""
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
-                            <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                              {clue.category}
-                            </p>
-                          </div>
-                          {showNewBadge ? (
-                            <span className="clue-new-badge rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
-                              NEW CLUE
-                            </span>
-                          ) : (
-                            <span className="terminal-pill rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
-                              {npcNameById.get(clue.sourceNpcId) ?? clue.sourceNpcId.toUpperCase()}
-                            </span>
-                          )}
+                  evidenceClues.map((clue) => (
+                    <article
+                      key={clue.id}
+                      className="rounded-[20px] border border-white/8 bg-white/[0.05] p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
+                          <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
+                            {clue.category}
+                          </p>
                         </div>
-                        <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
-                          {clue.summary}
-                        </p>
-                      </article>
-                    );
-                  })
+                        <span className="terminal-pill rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
+                          {npcNameById.get(clue.sourceNpcId) ?? clue.sourceNpcId.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
+                        {clue.summary}
+                      </p>
+                    </article>
+                  ))
                 ) : (
                   <EmptyState text="案件证据尚未形成稳定链条，继续追问相关 NPC。" />
                 )}
@@ -359,39 +299,27 @@ export function CaseFilePanel({
               </p>
               <div className="mt-3 space-y-2.5">
                 {anomalyClues.length ? (
-                  anomalyClues.map((clue) => {
-                    const clueState = clueStates[clue.id];
-                    const showNewBadge = clueState?.showBadge ?? false;
-                    return (
-                      <article
-                        key={clue.id}
-                        className={`rounded-[20px] border border-white/8 bg-[rgba(142,178,193,0.08)] p-3 ${
-                          clueState?.isNewlyUnlocked ? "clue-unlock-animate" : ""
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
-                            <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                              {clue.category}
-                            </p>
-                          </div>
-                          {showNewBadge ? (
-                            <span className="clue-new-badge rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
-                              NEW CLUE
-                            </span>
-                          ) : (
-                            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em] text-[#D7DEE7]">
-                              异常
-                            </span>
-                          )}
+                  anomalyClues.map((clue) => (
+                    <article
+                      key={clue.id}
+                      className="rounded-[20px] border border-white/8 bg-[rgba(142,178,193,0.08)] p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[0.95rem] font-semibold text-slate-50">{clue.title}</p>
+                          <p className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
+                            {clue.category}
+                          </p>
                         </div>
-                        <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
-                          {clue.summary}
-                        </p>
-                      </article>
-                    );
-                  })
+                        <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em] text-[#D7DEE7]">
+                          异常
+                        </span>
+                      </div>
+                      <p className="mt-2.5 text-[0.92rem] leading-6 text-[#D7DEE7]">
+                        {clue.summary}
+                      </p>
+                    </article>
+                  ))
                 ) : (
                   <EmptyState text="监控与路径异常尚未被完整恢复。" />
                 )}
