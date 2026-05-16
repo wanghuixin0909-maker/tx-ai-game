@@ -20,7 +20,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
       title="Interrogation Feed"
       className="chat-panel flex h-full min-h-[26rem] flex-col p-4 sm:min-h-[30rem] sm:p-5"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex flex-col gap-4 h-full">
         {/* 身份卡片头部 — 固定不滚动 */}
         <div
           className="shrink-0 rounded-[24px] border px-4 py-3.5 sm:px-5"
@@ -85,7 +85,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         </div>
 
         {/* 消息列表 — 独立滚动 */}
-        <div className="chat-feed min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1">
+        <div className="chat-feed flex-1 min-h-0 overflow-y-auto rounded-[24px] pr-1">
           <div className="space-y-5">
             {messages.map((message) => {
               const isPlayer = message.speakerType === "player";

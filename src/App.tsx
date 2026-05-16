@@ -617,10 +617,12 @@ export default function App() {
           </div>
 
           <div className="min-h-0 flex flex-col gap-3.5">
-            <ChatWindow
-              activeNpc={activeNpc}
-              messages={activeMessages}
-            />
+            <div className="flex-1 overflow-hidden rounded-3xl">
+              <ChatWindow
+                activeNpc={activeNpc}
+                messages={activeMessages}
+              />
+            </div>
             <PlayerInput
               draftMessage={gameState.draftMessage}
               onDraftChange={(draftMessage) =>
