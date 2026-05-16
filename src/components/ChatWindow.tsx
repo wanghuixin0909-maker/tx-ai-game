@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import type { ChatMessage, Npc } from "../types/game";
 import { NpcAvatar } from "../assets/npc/NpcAvatar";
 import { PanelFrame } from "./PanelFrame";
@@ -8,12 +9,151 @@ interface ChatWindowProps {
   messages: ChatMessage[];
 }
 
-export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+const MESSAGE_BASE_HEIGHT = 100;
+const CLUE_BANNER_HEIGHT = 60;
+const GAP_BETWEEN_MESSAGES = 20;
 
+interface MessageItem {
+  id: string;
+  height: number;
+  isPlayer: boolean;
+  isSystem: boolean;
+  speaker: string;
+  timestamp: string;
+  text: string;
+  hasClueBanner: boolean;
+  accentColor: string;
+}
+
+/** 计算单条消息的渲染高度 */
+function calcMessageHeight(message: ChatMessage): number {
+  const baseHeight = MESSAGE_BASE_HEIGHT;
+  // 文本行数估算（中文约 22 字/行，英文约 40 字/行）
+  const charCount = message.text.replace(/[\u4e00-\u9fa5]/g, "xx").length;
+  const lines = Math.ceil(charCount / 28);
+  const textHeight = Math.max(28, lines * 28);
+  const clueBanner = message.unlockClueIds?.length ? CLUE_BANNER_HEIGHT : 0;
+
+  return baseHeight + textHeight + clueBanner + GAP_BETWEEN_MESSAGES;
+}
+
+/** 将 ChatMessage 数组转换为虚拟列表需要的格式 */
+function buildMessageItems(
+  messages: ChatMessage[],
+  activeNpc: Npc,
+): MessageItem[] {
+  return messages.map((message) => {
+    const isPlayer = message.speakerType === "player";
+    const isSystem = message.speakerType === "system";
+
+    return {
+      id: message.id,
+      height: calcMessageHeight(message),
+      isPlayer,
+      isSystem,
+      speaker: isPlayer ? "Player" : isSystem ? "System" : activeNpc.name,
+      timestamp: message.timestamp,
+      text: message.text,
+      hasClueBanner: !!message.unlockClueIds?.length,
+      accentColor: activeNpc.accentColor,
+    };
+  });
+}
+
+/** 虚拟列表行组件 */
+const MessageRow = ({ index, style, data }: ListChildComponentProps<{ items: MessageItem[] }>) => {
+  const item = data.items[index];
+
+  return (
+    <div style={style}>
+      <article
+        className={`flex ${item.isPlayer ? "justify-end" : "justify-start"}`}
+      >
+        <div
+          className={`max-w-[88%] rounded-[26px] border px-4 py-3.5 sm:max-w-[78%] ${
+            item.isPlayer
+              ? "border-white/10 bg-[rgba(167,181,200,0.1)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.14)]"
+              : item.isSystem
+                ? "border-white/8 bg-white/[0.06] text-[#D6DEEA]"
+                : "border-white/8 bg-[rgba(136,145,171,0.08)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.12)]"
+          }`}
+        >
+          <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
+            <span>{item.speaker}</span>
+            <span className="text-[#96A3B3]">{item.timestamp}</span>
+          </div>
+          <p className="text-[0.96rem] leading-7">{item.text}</p>
+          {item.hasClueBanner && (
+            <div className="mt-3 rounded-2xl border border-white/8 bg-white/[0.06] px-3 py-2.5 text-xs leading-5 text-[#D6DEEA]">
+              线索同步: 新证据已加入案卷。
+            </div>
+          )}
+        </div>
+      </article>
+    </div>
+  );
+};
+
+export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
+  const listRef = useRef<List>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const isAtBottomRef = useRef(true);
+  const prevMessageCountRef = useRef(messages.length);
+  const [listHeight, setListHeight] = useState(400);
+
+  // 构建虚拟列表数据
+  const items = buildMessageItems(messages, activeNpc);
+
+  // 监听容器大小变化
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, activeNpc.id]);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateHeight = () => {
+      setListHeight(container.clientHeight);
+    };
+
+    // 初始高度
+    updateHeight();
+
+    // 监听大小变化
+    const resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // 检测是否在底部附近
+  const checkIfAtBottom = useCallback(() => {
+    if (!containerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const threshold = 80;
+    isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < threshold;
+  }, []);
+
+  // 滚动到底部
+  useEffect(() => {
+    const currentMessageCount = messages.length;
+    const prevCount = prevMessageCountRef.current;
+
+    if (currentMessageCount > prevCount) {
+      // 有新消息
+      if (isAtBottomRef.current || currentMessageCount <= 20) {
+        // 用户在底部或消息较少，滚动到底部
+        requestAnimationFrame(() => {
+          listRef.current?.scrollToItem(items.length - 1, { align: "end" });
+        });
+      }
+    }
+
+    prevMessageCountRef.current = currentMessageCount;
+  }, [messages.length]);
+
+  // 监听滚动位置
+  const handleScroll = useCallback(() => {
+    checkIfAtBottom();
+  }, [checkIfAtBottom]);
 
   return (
     <PanelFrame
@@ -84,44 +224,33 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
           </p>
         </div>
 
-        {/* 消息列表 — 独立滚动 */}
-        <div className="chat-feed min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1">
-          <div className="space-y-5">
-            {messages.map((message) => {
-              const isPlayer = message.speakerType === "player";
-              const isSystem = message.speakerType === "system";
-
-              return (
-                <article
-                  key={message.id}
-                  className={`flex ${isPlayer ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[88%] rounded-[26px] border px-4 py-3.5 sm:max-w-[78%] ${
-                      isPlayer
-                        ? "border-white/10 bg-[rgba(167,181,200,0.1)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.14)]"
-                        : isSystem
-                          ? "border-white/8 bg-white/[0.06] text-[#D6DEEA]"
-                          : "border-white/8 bg-[rgba(136,145,171,0.08)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.12)]"
-                    }`}
-                  >
-                    <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
-                      <span>{isPlayer ? "Player" : isSystem ? "System" : activeNpc.name}</span>
-                      <span className="text-[#96A3B3]">{message.timestamp}</span>
-                    </div>
-                    <p className="text-[0.96rem] leading-7">{message.text}</p>
-                    {message.unlockClueIds?.length ? (
-                      <div className="mt-3 rounded-2xl border border-white/8 bg-white/[0.06] px-3 py-2.5 text-xs leading-5 text-[#D6DEEA]">
-                        线索同步: {message.unlockClueIds.length} 条新证据已加入案卷。
-                      </div>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
-            <div ref={bottomRef} />
-          </div>
+        {/* 消息列表 — 虚拟化滚动 */}
+        <div
+          ref={containerRef}
+          className="chat-feed min-h-0 flex-1 rounded-[24px] pr-1"
+          onScroll={handleScroll}
+        >
+          {items.length > 0 ? (
+            <List
+              ref={listRef}
+              height={listHeight}
+              width="100%"
+              itemCount={items.length}
+              itemSize={(index: number) => items[index]?.height ?? MESSAGE_BASE_HEIGHT}
+              itemData={{ items }}
+              overscanCount={5}
+            >
+              {MessageRow}
+            </List>
+          ) : (
+            <div className="flex h-full items-center justify-center text-[#B8C2CF]">
+              开始对话...
+            </div>
+          )}
         </div>
+
+        {/* 底部锚点 */}
+        <div ref={bottomRef} />
       </div>
     </PanelFrame>
   );
