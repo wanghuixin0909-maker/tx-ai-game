@@ -15,6 +15,10 @@ import {
 } from "./data/mockGame";
 import { ChatApiError, fetchNpcReply } from "./lib/chatApi";
 import {
+  buildKeywordIndex,
+  selectReply,
+} from "./lib/replyMatcher";
+import {
   clearGameMemory,
   loadGameMemory,
   MAX_CASE_TESTIMONIES,
@@ -47,6 +51,12 @@ const CASE_PHASES = [
 const validNpcIds = npcs.map((npc) => npc.id);
 const validClueIds = clues.map((clue) => clue.id);
 const npcNameById = Object.fromEntries(npcs.map((npc) => [npc.id, npc.name]));
+
+// 构建所有 NPC 的关键词索引
+const keywordIndices: Record<string, ReturnType<typeof buildKeywordIndex>> = {};
+for (const [npcId, replies] of Object.entries(scriptedReplies)) {
+  keywordIndices[npcId] = buildKeywordIndex(replies);
+}
 
 function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages.map((message) => ({
@@ -270,6 +280,8 @@ export default function App() {
   const skipCaseFilePersistenceRef = useRef(false);
   const skipRecentChatPersistenceRef = useRef(false);
   const requestEpochRef = useRef(0);
+  // 记录每个 NPC 已使用的回复索引（避免重复）
+  const usedReplyIndicesRef = useRef<Record<string, Set<number>>>({});
 
   const [gameState, setGameState] = useState<GameState>(() => {
     const initialState = createInitialGameState();
@@ -362,13 +374,28 @@ export default function App() {
 
     const requestEpoch = requestEpochRef.current;
     const playerMessage = createPlayerMessage(trimmed);
-    const currentConversation = gameState.conversations[npcId] ?? [];
-    const currentPlayerTurns = currentConversation.filter(
-      (message) => message.speakerType === "player",
-    ).length;
+
+    // 获取该 NPC 的回复池和关键词索引
     const replyPool = scriptedReplies[npcId] ?? [];
-    const scriptedReply =
-      replyPool.length > 0 ? replyPool[currentPlayerTurns % replyPool.length] : undefined;
+    const keywordIndex = keywordIndices[npcId] ?? [];
+    const usedIndices = usedReplyIndicesRef.current[npcId] ?? new Set<number>();
+
+    // 使用关键词匹配选择回复
+    const selected = selectReply(
+      trimmed,
+      replyPool,
+      keywordIndex,
+      gameState.discoveredClueIds,
+      usedIndices,
+    );
+
+    // 记录已使用的索引
+    if (selected) {
+      if (!usedReplyIndicesRef.current[npcId]) {
+        usedReplyIndicesRef.current[npcId] = new Set<number>();
+      }
+      usedReplyIndicesRef.current[npcId].add(selected.matchedIndex);
+    }
 
     setGameState((current) => ({
       ...current,
@@ -395,7 +422,7 @@ export default function App() {
           current,
           npcId,
           response.reply,
-          scriptedReply?.unlockClueIds,
+          selected?.reply.unlockClueIds,
         ),
       );
     } catch (error) {
