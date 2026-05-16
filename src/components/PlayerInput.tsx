@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { ConfirmModal } from "./ConfirmModal";
+
 interface PlayerInputProps {
   draftMessage: string;
   onDraftChange: (value: string) => void;
@@ -15,6 +18,17 @@ export function PlayerInput({
   disabled = false,
   isLoading = false,
 }: PlayerInputProps) {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const handleReset = () => {
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    setShowResetConfirm(false);
+    onReset();
+  };
+
   return (
     <div className="cyber-panel shrink-0 overflow-visible px-4 py-3.5 sm:px-5 sm:py-4">
       <div className="mb-3 flex flex-wrap items-center gap-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-[#AEB8C5]">
@@ -49,7 +63,7 @@ export function PlayerInput({
           </button>
           <button
             type="button"
-            onClick={onReset}
+            onClick={handleReset}
             className="rounded-[22px] border border-white/8 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-[#D7DEE7] transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/[0.06]"
           >
             Reset Case / 重新开始案件
@@ -59,6 +73,17 @@ export function PlayerInput({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        title="重置案件？"
+        message="此操作将清除所有已收集的线索、证词和对话记录，且无法撤销。确定要重新开始吗？"
+        confirmText="确认重置"
+        cancelText="返回调查"
+        danger={true}
+        onConfirm={confirmReset}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 }
