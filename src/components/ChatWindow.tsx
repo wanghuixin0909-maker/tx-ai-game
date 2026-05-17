@@ -70,7 +70,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         </div>
       </div>
 
-      <div className="chat-feed min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1">
+      <div className="chat-feed min-h-0 max-h-full flex-1 overflow-y-auto rounded-[24px] pr-1">
         <div className="space-y-5">
           {messages.map((message) => {
             const isPlayer = message.speakerType === "player";
