@@ -8,10 +8,16 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const container = messagesContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
   }, [messages, activeNpc.id]);
 
   return (
@@ -70,7 +76,10 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         </div>
       </div>
 
-      <div className="chat-feed min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1">
+      <div
+        ref={messagesContainerRef}
+        className="chat-feed min-h-[12rem] flex-1 overflow-y-auto rounded-[24px] pr-1"
+      >
         <div className="space-y-5">
           {messages.map((message) => {
             const isPlayer = message.speakerType === "player";
@@ -104,7 +113,6 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
               </article>
             );
           })}
-          <div ref={bottomRef} />
         </div>
       </div>
     </PanelFrame>
