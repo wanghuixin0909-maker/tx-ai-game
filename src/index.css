@@ -112,6 +112,12 @@ textarea::placeholder {
   backdrop-filter: blur(20px);
 }
 
+.cyber-panel.npc-panel {
+  height: auto;
+  min-height: 24rem;
+  overflow: visible;
+}
+
 .cyber-panel::before {
   content: "";
   position: absolute;

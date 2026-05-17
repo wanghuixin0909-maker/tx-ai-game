@@ -36,9 +36,9 @@ export function ChatWindow({ activeNpc, messages, footer }: ChatWindowProps) {
   return (
     <PanelFrame
       title="Interrogation Feed"
-      className="chat-panel flex-1 h-full min-h-0 overflow-hidden p-4 sm:p-5"
+      className="chat-panel flex h-full min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-5"
     >
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex h-full min-h-0 flex-1 flex-col">
         <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -92,7 +92,7 @@ export function ChatWindow({ activeNpc, messages, footer }: ChatWindowProps) {
 
         <div
           ref={messagesContainerRef}
-          className="chat-feed min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1"
+          className="chat-feed flex-1 min-h-0 overflow-y-auto rounded-[24px] pr-1"
         >
           <div className="space-y-5">
             {messages.map((message) => {

@@ -15,7 +15,7 @@ export function PanelFrame({
   children,
 }: PanelFrameProps) {
   return (
-    <section className={`cyber-panel flex flex-col h-full ${className}`}>
+    <section className={`cyber-panel flex h-full min-h-0 flex-col ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-4 shrink-0">
         <div>
           <p className="panel-heading text-[0.68rem] font-medium uppercase">
