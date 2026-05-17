@@ -119,13 +119,13 @@ export function CaseFilePanel({
 
   return (
     <PanelFrame
-      title="Case File"
+      title="案件档案"
       subtitle="案件信息按摘要、证词、线索分类整理。"
       className="flex h-full min-h-[24rem] flex-col overflow-hidden p-4 sm:p-5"
       action={
         <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
-            {discoveredClues.length}/{clues.length} records
+            {discoveredClues.length}/{clues.length} 案卷
           </div>
           <button
             type="button"
@@ -141,10 +141,10 @@ export function CaseFilePanel({
             }`}
           >
             {accusationStatus === "resolved"
-              ? "Case Closed"
+              ? "案件结案"
               : accusationStatus === "failed"
-                ? "Reopen File"
-                : "Final Accusation"}
+                ? "重新立案"
+                : "最终指控"}
           </button>
         </div>
       }

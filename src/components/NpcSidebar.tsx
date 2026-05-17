@@ -3,10 +3,10 @@ import { NpcAvatar } from "../assets/npc/NpcAvatar";
 import { PanelFrame } from "./PanelFrame";
 
 const statusLabel: Record<Npc["status"], string> = {
-  online: "ONLINE",
-  guarded: "GUARDED",
-  suspect: "SUSPECT",
-  offline: "OFFLINE",
+  online: "在线",
+  guarded: "戒备",
+  suspect: "嫌疑",
+  offline: "离线",
 };
 
 interface NpcSidebarProps {
@@ -24,7 +24,7 @@ export function NpcSidebar({
 }: NpcSidebarProps) {
   return (
     <PanelFrame
-      title="Network Personas"
+      title="对象网络"
       subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
       className="h-full min-h-[24rem] p-5 sm:p-6"
     >
@@ -110,11 +110,11 @@ export function NpcSidebar({
                   {/* 最新消息 */}
                   <p className="mt-2.5 truncate text-[0.68rem] uppercase tracking-[0.16em] text-[#96A3B3]">
                     {latestMessage?.speakerType === "player"
-                      ? "You: "
+                      ? "你："
                       : latestMessage?.speakerType === "npc"
-                        ? "Signal: "
-                        : "System: "}
-                    {latestMessage?.text ?? "No signal"}
+                        ? "讯号："
+                        : "系统："}
+                    {latestMessage?.text ?? "暂无讯号"}
                   </p>
                 </div>
               </div>

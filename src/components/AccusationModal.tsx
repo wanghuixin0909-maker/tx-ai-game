@@ -95,10 +95,10 @@ export function AccusationModal({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[0.68rem] uppercase tracking-[0.26em] text-[#ffd15e]">
-                Final Accusation
+                FINAL ACCUSATION
               </p>
               <h2 className="mt-2 text-[1.8rem] font-semibold tracking-[0.03em] text-slate-50 sm:text-[2.1rem]">
-                指控凶手
+                最终指控
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-[#D6DEEA]">
                 选择你要正式指控的对象。系统将在提交前校验最终证据链，
@@ -110,16 +110,14 @@ export function AccusationModal({
               type="button"
               onClick={onClose}
               className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#D7DEE7] transition hover:bg-white/[0.08]"
-            >
-              Close
-            </button>
+            >关闭</button>
           </div>
 
           <section className="cyber-card rounded-[24px] p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                  Evidence Chain
+                  证据链
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[#E2E8F0]">
                   必要证据:
@@ -140,7 +138,7 @@ export function AccusationModal({
                           : "border-[#ff6b6b55] bg-[rgba(255,107,107,0.1)] text-[#FFC6C6]"
                       }`}
                     >
-                      {unlocked ? "Linked" : "Missing"}
+                      {unlocked ? "已锁定" : "缺失"}
                     </span>
                   );
                 })}
@@ -200,7 +198,7 @@ export function AccusationModal({
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-[18px] border border-white/8 bg-black/10 px-3 py-2">
                           <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">
-                            Suspicion
+                            嫌疑等级
                           </p>
                           <p className="mt-1 text-sm font-semibold text-[#E2E8F0]">
                             {insight.suspicionLabel}
@@ -208,7 +206,7 @@ export function AccusationModal({
                         </div>
                         <div className="rounded-[18px] border border-white/8 bg-black/10 px-3 py-2">
                           <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">
-                            Key Clues
+                            关键线索
                           </p>
                           <p className="mt-1 text-sm font-semibold text-[#E2E8F0]">
                             {insight.matchedEvidenceCount}
@@ -263,7 +261,7 @@ export function AccusationModal({
                     : "cursor-not-allowed bg-white/8 text-[#AEB8C5]"
                 }`}
               >
-                Confirm Accusation
+                确认指控
               </button>
             </div>
           </div>

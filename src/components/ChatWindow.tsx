@@ -16,14 +16,14 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
 
   return (
     <PanelFrame
-      title="Interrogation Feed"
+      title="审问记录"
       className="chat-panel min-h-0 flex-1 p-4 sm:p-5"
     >
       <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
-              Current NPC
+              当前对象
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <div
@@ -46,7 +46,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
             }}
           >
             <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
-              Status
+              状态
             </p>
             <p className="mt-1 text-sm font-medium uppercase text-[#E2E8F0]">
               {activeNpc.status}
@@ -57,13 +57,13 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
         <div className="mt-3 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
             <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-              Interrogation Focus
+              审问焦点
             </p>
             <p className="mt-2 text-sm leading-6 text-[#D6DEEA]">{activeNpc.investigationFocus}</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
             <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-              Profile Note
+              档案备注
             </p>
             <p className="mt-2 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
           </div>
@@ -91,7 +91,7 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
                   }`}
                 >
                   <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
-                    <span>{isPlayer ? "Player" : isSystem ? "System" : activeNpc.name}</span>
+                    <span>{isPlayer ? "你" : isSystem ? "系统" : activeNpc.name}</span>
                     <span className="text-[#96A3B3]">{message.timestamp}</span>
                   </div>
                   <p className="text-[0.96rem] leading-7">{message.text}</p>

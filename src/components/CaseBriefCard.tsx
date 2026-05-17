@@ -209,7 +209,7 @@ export function CaseBriefCard ({
         <div className="flex items-center gap-2">
           {/* 任务激活状态标签 */}
           <span className="rounded-full border border-white/8 bg-white/[0.05] px-3 py-1 text-[0.64rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
-            Mission Active
+            调查进行中
           </span>
 
           {/* 展开/收起控制按钮 */}
@@ -385,4 +385,3 @@ export function CaseBriefCard ({
     </section>
   );
 }
-

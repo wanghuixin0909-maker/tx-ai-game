@@ -62,10 +62,10 @@ export function EndingOverlay({
                   isResolved ? "text-[#5ef2ff]" : "text-[#ff7b7b]"
                 }`}
               >
-                {isResolved ? "Case Closed" : "System Error"}
+                {isResolved ? "案件结案" : "系统异常"}
               </p>
               <h2 className="mt-2 text-[2rem] font-semibold tracking-[0.04em] text-slate-50 sm:text-[2.4rem]">
-                {isResolved ? "NEON ECHO // CASE RESOLVED" : "Innocent Target Flagged"}
+                {isResolved ? "NEON ECHO // 真相归档" : "错误目标已标记"}
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-[#D6DEEA]">
                 {isResolved
@@ -80,7 +80,7 @@ export function EndingOverlay({
                   <NpcAvatar npc={accusedNpc} size="lg" showRing={isResolved} />
                   <div>
                     <p className="text-[0.62rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                      Accused Target
+                      指控对象
                     </p>
                     <p className="mt-1 text-base font-semibold text-slate-50">
                       {accusedNpc.name}
@@ -97,19 +97,19 @@ export function EndingOverlay({
               <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                 <section className="cyber-card rounded-[26px] p-4">
                   <p className="text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                    Truth Restored
+                    真相还原
                   </p>
                   <p className="mt-3 text-sm leading-7 text-[#E2E8F0]">
                     {culpritSummary.summary}
                   </p>
                   <p className="mt-4 text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                    Motive
+                    作案动机
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[#D6DEEA]">
                     {culpritSummary.motive}
                   </p>
                   <p className="mt-4 text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                    Framing Sequence
+                    栽赃路径
                   </p>
                   <p className="mt-2 text-sm leading-7 text-[#D6DEEA]">
                     {culpritSummary.coverUp}
@@ -118,20 +118,20 @@ export function EndingOverlay({
 
                 <section className="cyber-card rounded-[26px] p-4">
                   <p className="text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                    Case Score
+                    案件评分
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    <ScoreCard label="Clue Completeness" value={endingState.score.clueCompleteness} />
+                    <ScoreCard label="线索完整度" value={endingState.score.clueCompleteness} />
                     <ScoreCard
-                      label="Interrogation Efficiency"
+                      label="审问效率"
                       value={endingState.score.interrogationEfficiency}
                     />
-                    <ScoreCard label="Deduction Accuracy" value={endingState.score.deductionAccuracy} />
-                    <ScoreCard label="Overall" value={endingState.score.overall} />
+                    <ScoreCard label="推断准确率" value={endingState.score.deductionAccuracy} />
+                    <ScoreCard label="总评分" value={endingState.score.overall} />
                   </div>
                   <div className="mt-4 rounded-[22px] border border-[#8eb2c166] bg-[rgba(142,178,193,0.08)] px-4 py-3">
                     <p className="text-[0.64rem] uppercase tracking-[0.18em] text-[#C9E0EA]">
-                      Archive Sync
+                      档案同步
                     </p>
                     <div className="mt-2 space-y-2">
                       {endingState.aiLines.map((line) => (
@@ -146,7 +146,7 @@ export function EndingOverlay({
 
               <section className="cyber-card rounded-[26px] p-4">
                 <p className="text-[0.68rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
-                  Final Evidence Chain
+                  最终证据链
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {requiredEvidence.map((clue) => (
@@ -163,7 +163,7 @@ export function EndingOverlay({
           ) : (
             <section className="rounded-[26px] border border-[#ff6b6b44] bg-[rgba(255,107,107,0.08)] p-5">
               <p className="text-[0.68rem] uppercase tracking-[0.18em] text-[#FF9C9C]">
-                Failure Record
+                失败记录
               </p>
               <p className="mt-3 text-sm leading-7 text-[#FFD3D3]">
                 错误指控已触发红色警报。系统检测到无辜对象被错误锁定，案件将以失败状态归档。
@@ -184,7 +184,7 @@ export function EndingOverlay({
               onClick={onClose}
               className="rounded-[22px] border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-medium text-slate-50 transition hover:bg-white/[0.1]"
             >
-              {isResolved ? "Return to Archive" : "Resume Investigation"}
+              {isResolved ? "返回档案" : "返回调查"}
             </button>
           </div>
         </div>

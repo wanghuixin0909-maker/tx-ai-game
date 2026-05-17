@@ -40,17 +40,17 @@ import type {
 } from "./types/game";
 
 const mobilePanels: Array<{ id: MobilePanel; label: string }> = [
-  { id: "chat", label: "CHAT" },
-  { id: "npcs", label: "NPCS" },
-  { id: "case-file", label: "FILE" },
+  { id: "chat", label: "审问" },
+  { id: "npcs", label: "对象" },
+  { id: "case-file", label: "档案" },
 ];
 
 const CASE_PHASES = [
-  { minClues: clues.length, label: "Phase 05 / Final Reconstruction" },
-  { minClues: 5, label: "Phase 04 / 真凶锁定" },
-  { minClues: 3, label: "Phase 03 / 证词对照" },
-  { minClues: 2, label: "Phase 02 / 嫌疑排查" },
-  { minClues: 0, label: "Phase 01 / 案件简报" },
+  { minClues: clues.length, label: "阶段 05 / 最终推演" },
+  { minClues: 5, label: "阶段 04 / 真凶锁定" },
+  { minClues: 3, label: "阶段 03 / 证词对照" },
+  { minClues: 2, label: "阶段 02 / 嫌疑排查" },
+  { minClues: 0, label: "阶段 01 / 案件简报" },
 ] as const;
 
 const validNpcIds = npcs.map((npc) => npc.id);
@@ -91,7 +91,7 @@ function createInitialNpcStates(): Record<string, NpcRuntimeState> {
 function getCasePhase(discoveredCount: number): string {
   return (
     CASE_PHASES.find((phase) => discoveredCount >= phase.minClues)?.label
-    ?? "Phase 01 / 案件简报"
+    ?? "阶段 01 / 案件简报"
   );
 }
 
@@ -419,8 +419,8 @@ export default function App() {
 
       const fallbackMessage =
         error instanceof ChatApiError
-          ? `Backend request failed: ${error.message}`
-          : "Backend request failed. Please try again in a moment.";
+          ? `后端请求失败：${error.message}`
+          : "后端请求失败，请稍后再试。";
 
       setGameState((current) => ({
         ...current,
@@ -442,7 +442,7 @@ export default function App() {
   };
 
   const handleResetGame = () => {
-    if (!window.confirm("Reset Case and clear saved clues, testimony, and recent chats?")) {
+    if (!window.confirm("重置案件并清除已保存的线索、证词和最近对话记录？")) {
       return;
     }
 
@@ -504,7 +504,7 @@ export default function App() {
       aiLines:
         result.verdict === "case-resolved"
           ? FINAL_AI_ARCHIVE_LINES
-          : ["SYSTEM ERROR", "Innocent Target Flagged", "案件失败。"],
+          : ["系统异常", "错误目标已标记", "案件失败。"],
     });
     setIsEndingOverlayOpen(true);
   };
@@ -526,7 +526,7 @@ export default function App() {
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-[#B8C2CF]">
-                AI Detective Interface
+                AI 侦查终端
               </p>
               <h1 className="mt-2.5 text-[2.15rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.55rem]">
                 NEON ECHO
@@ -540,7 +540,7 @@ export default function App() {
             <div className="grid grid-cols-3 gap-2.5">
               <div className="cyber-card rounded-[22px] px-3 py-2.5">
                 <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                  Active NPC
+                  当前对象
                 </p>
                 <p className="mt-1.5 text-sm font-semibold text-[#E2E8F0] sm:text-base">
                   {activeNpc.name}
@@ -551,7 +551,7 @@ export default function App() {
               </div>
               <div className="cyber-card rounded-[22px] px-3 py-2.5">
                 <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                  Clues Recovered
+                  已获线索
                 </p>
                 <p className="mt-1.5 text-sm font-semibold text-[#E2E8F0] sm:text-base">
                   {gameState.discoveredClueIds.length}/{clues.length}
@@ -562,7 +562,7 @@ export default function App() {
               </div>
               <div className="cyber-card rounded-[22px] px-3 py-2.5">
                 <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
-                  Victim
+                  受害者
                 </p>
                 <p className="mt-1.5 text-sm font-semibold text-[#E2E8F0] sm:text-base">
                   {activeCaseFile.brief.victim.name}
