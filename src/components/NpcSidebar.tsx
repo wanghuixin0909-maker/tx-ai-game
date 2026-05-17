@@ -26,7 +26,7 @@ export function NpcSidebar({
     <PanelFrame
       title="对象网络"
       subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
-      className="npc-panel min-h-[24rem] p-5 sm:p-6"
+      className="npc-panel h-full min-h-0 p-5 sm:p-6"
     >
       <div className="space-y-3.5">
         {npcs.map((npc) => {

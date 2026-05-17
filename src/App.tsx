@@ -643,8 +643,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px]">
-          <div className="min-h-0">
+        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:h-full lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
+          <div className="h-full min-h-0">
             <NpcSidebar
               npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
@@ -672,7 +672,7 @@ export default function App() {
             />
           </div>
 
-          <div className="min-h-0">
+          <div className="h-full min-h-0">
             <CaseFilePanel
               caseFile={activeCaseFile}
               clues={clues}
