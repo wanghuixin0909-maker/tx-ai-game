@@ -130,7 +130,7 @@ export function CaseFilePanel({
           <button
             type="button"
             onClick={onOpenAccusation}
-            className={`rounded-full border px-3.5 py-2 text-[0.64rem] font-medium uppercase tracking-[0.16em] transition ${
+            className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-2 text-[0.64rem] font-medium uppercase tracking-[0.16em] transition sm:px-3.5 ${
               accusationStatus === "resolved"
                 ? "border-[#5ef2ff55] bg-[rgba(94,242,255,0.12)] text-[#CFF9FF]"
                 : accusationStatus === "failed"
