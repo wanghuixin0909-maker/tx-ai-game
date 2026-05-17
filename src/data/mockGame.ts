@@ -3,6 +3,9 @@ import type { CaseBibleData, CaseMeta, ChatMessage, Clue, Npc } from "../types/g
 
 const caseBible = caseBibleData as CaseBibleData;
 
+// 真正的凶手 ID（仅用于验证玩家指控）
+export const culpritId = caseBible.truth.culpritId;
+
 export const caseFile: CaseMeta = {
   id: caseBible.case.id,
   title: caseBible.case.title,

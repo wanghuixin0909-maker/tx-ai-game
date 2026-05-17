@@ -8,6 +8,7 @@ import { useSoundEffects } from "./hooks/useSoundEffects";
 import {
   caseFile,
   clues,
+  culpritId,
   initialConversations,
   npcs,
   scriptedReplies,
@@ -312,6 +313,7 @@ export default function App() {
     };
   });
   const [pendingNpcIds, setPendingNpcIds] = useState<string[]>([]);
+  const [accusationResult, setAccusationResult] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!persistenceReadyRef.current) {
@@ -475,6 +477,14 @@ export default function App() {
     }));
   };
 
+  const handleAccusation = (suspectId: string) => {
+    const isCorrect = suspectId === culpritId;
+    setAccusationResult(isCorrect);
+    if (isCorrect) {
+      playSound("unlock");
+    }
+  };
+
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
 
@@ -602,6 +612,8 @@ export default function App() {
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
               clueStates={clueStates}
+              onAccusation={handleAccusation}
+              accusationResult={accusationResult}
             />
           </div>
         </div>
@@ -644,6 +656,8 @@ export default function App() {
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
               clueStates={clueStates}
+              onAccusation={handleAccusation}
+              accusationResult={accusationResult}
             />
           </div>
         </div>
