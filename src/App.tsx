@@ -574,8 +574,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid flex-1 gap-3.5 lg:hidden">
-          <div className={gameState.mobilePanel === "npcs" ? "block" : "hidden"}>
+        <div className="grid flex-1 gap-3.5 lg:hidden min-h-0">
+          <div className={gameState.mobilePanel === "npcs" ? "block h-full" : "hidden"}>
             <NpcSidebar
               npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
@@ -585,7 +585,7 @@ export default function App() {
           </div>
 
           <div
-            className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} min-h-0 flex-col gap-3.5`}
+            className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} h-full min-h-0 flex-col gap-3.5`}
           >
             <ChatWindow
               activeNpc={activeNpc}
@@ -603,7 +603,7 @@ export default function App() {
             />
           </div>
 
-          <div className={gameState.mobilePanel === "case-file" ? "block" : "hidden"}>
+          <div className={gameState.mobilePanel === "case-file" ? "block h-full" : "hidden"}>
             <CaseFilePanel
               caseFile={activeCaseFile}
               clues={clues}
