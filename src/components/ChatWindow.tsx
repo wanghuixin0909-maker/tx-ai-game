@@ -26,8 +26,8 @@ export function ChatWindow({ activeNpc, messages }: ChatWindowProps) {
   }, [messages.length, activeNpc.id]);
 
   return (
-    <PanelFrame title="审问记录" className="chat-panel min-h-0 flex-1 overflow-hidden p-4 sm:p-5">
-      <div className="flex min-h-0 flex-1 flex-col">
+    <PanelFrame title="审问记录" className="chat-panel h-full min-h-0 flex-1 overflow-hidden p-4 sm:p-5">
+      <div className="flex h-full min-h-0 flex-1 flex-col">
         <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>

@@ -519,9 +519,9 @@ export default function App() {
   };
 
   return (
-    <main className="relative min-h-[100dvh] px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+    <main className="relative h-[100dvh] overflow-hidden px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-      <div className="relative mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-[1700px] flex-col gap-4">
+      <div className="relative mx-auto flex h-full min-h-0 w-full max-w-[1700px] flex-col gap-4">
         <header className="cyber-panel p-4 sm:p-5">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
@@ -598,7 +598,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid flex-1 gap-3.5 lg:hidden">
+        <div className="grid min-h-0 flex-1 gap-3.5 lg:hidden">
           <div className={gameState.mobilePanel === "npcs" ? "block" : "hidden"}>
             <NpcSidebar
               npcs={runtimeNpcs}
@@ -609,7 +609,7 @@ export default function App() {
           </div>
 
           <div
-            className={`${gameState.mobilePanel === "chat" ? "flex" : "hidden"} min-h-0 flex-col gap-3.5`}
+            className={`${gameState.mobilePanel === "chat" ? "flex h-full" : "hidden"} min-h-0 flex-1 flex-col gap-3.5`}
           >
             <ChatWindow
               activeNpc={activeNpc}
@@ -641,7 +641,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px]">
+        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px]">
           <div>
             <NpcSidebar
               npcs={runtimeNpcs}
@@ -651,7 +651,7 @@ export default function App() {
             />
           </div>
 
-          <div className="min-h-0 flex flex-col gap-3.5">
+          <div className="flex h-full min-h-0 flex-col gap-3.5">
             <ChatWindow
               activeNpc={activeNpc}
               messages={activeMessages}
