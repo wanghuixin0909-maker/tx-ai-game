@@ -614,16 +614,18 @@ export default function App() {
             <ChatWindow
               activeNpc={activeNpc}
               messages={activeMessages}
-            />
-            <PlayerInput
-              draftMessage={gameState.draftMessage}
-              onDraftChange={(draftMessage) =>
-                setGameState((current) => ({ ...current, draftMessage }))
+              footer={
+                <PlayerInput
+                  draftMessage={gameState.draftMessage}
+                  onDraftChange={(draftMessage) =>
+                    setGameState((current) => ({ ...current, draftMessage }))
+                  }
+                  onSend={handleSendMessage}
+                  onReset={handleResetGame}
+                  disabled={pendingActiveNpc || caseResolved}
+                  isLoading={pendingActiveNpc}
+                />
               }
-              onSend={handleSendMessage}
-              onReset={handleResetGame}
-              disabled={pendingActiveNpc || caseResolved}
-              isLoading={pendingActiveNpc}
             />
           </div>
 
@@ -655,16 +657,18 @@ export default function App() {
             <ChatWindow
               activeNpc={activeNpc}
               messages={activeMessages}
-            />
-            <PlayerInput
-              draftMessage={gameState.draftMessage}
-              onDraftChange={(draftMessage) =>
-                setGameState((current) => ({ ...current, draftMessage }))
+              footer={
+                <PlayerInput
+                  draftMessage={gameState.draftMessage}
+                  onDraftChange={(draftMessage) =>
+                    setGameState((current) => ({ ...current, draftMessage }))
+                  }
+                  onSend={handleSendMessage}
+                  onReset={handleResetGame}
+                  disabled={pendingActiveNpc || caseResolved}
+                  isLoading={pendingActiveNpc}
+                />
               }
-              onSend={handleSendMessage}
-              onReset={handleResetGame}
-              disabled={pendingActiveNpc || caseResolved}
-              isLoading={pendingActiveNpc}
             />
           </div>
 
