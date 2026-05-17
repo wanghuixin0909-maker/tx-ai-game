@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from "react";
+import { AccusationModal } from "./components/AccusationModal";
 import { CaseFilePanel } from "./components/CaseFilePanel";
 import { ChatWindow } from "./components/ChatWindow";
+import { EndingOverlay } from "./components/EndingOverlay";
 import { NpcSidebar } from "./components/NpcSidebar";
 import { PlayerInput } from "./components/PlayerInput";
 import {
   caseFile,
+  caseTruth,
   clues,
   initialConversations,
   npcs,
   scriptedReplies,
   starterClueIds,
 } from "./data/mockGame";
+import {
+  buildCaseScore,
+  FINAL_AI_ARCHIVE_LINES,
+  FINAL_REQUIRED_CLUE_IDS,
+  validateFinalAccusation,
+} from "./lib/accusation";
 import { ChatApiError, fetchNpcReply } from "./lib/chatApi";
 import {
   clearGameMemory,
@@ -21,8 +30,10 @@ import {
   saveRecentChatMemory,
 } from "./lib/localGameStorage";
 import type {
+  AccusationCheckResult,
   CaseTestimony,
   ChatMessage,
+  EndingState,
   GameState,
   MobilePanel,
   NpcRuntimeState,
@@ -298,6 +309,11 @@ export default function App() {
     };
   });
   const [pendingNpcIds, setPendingNpcIds] = useState<string[]>([]);
+  const [isAccusationOpen, setIsAccusationOpen] = useState(false);
+  const [lastAccusationResult, setLastAccusationResult] =
+    useState<AccusationCheckResult | null>(null);
+  const [caseOutcome, setCaseOutcome] = useState<EndingState | null>(null);
+  const [isEndingOverlayOpen, setIsEndingOverlayOpen] = useState(false);
 
   useEffect(() => {
     if (!persistenceReadyRef.current) {
@@ -354,7 +370,7 @@ export default function App() {
     const trimmed = gameState.draftMessage.trim();
     const npcId = activeNpc.id;
 
-    if (!trimmed || pendingNpcIds.includes(npcId)) {
+    if (!trimmed || pendingNpcIds.includes(npcId) || caseResolved) {
       return;
     }
 
@@ -435,6 +451,10 @@ export default function App() {
     skipRecentChatPersistenceRef.current = true;
     clearGameMemory();
     setPendingNpcIds([]);
+    setIsAccusationOpen(false);
+    setLastAccusationResult(null);
+    setCaseOutcome(null);
+    setIsEndingOverlayOpen(false);
     setGameState(createInitialGameState());
   };
 
@@ -448,6 +468,55 @@ export default function App() {
 
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
+  const evidenceChainReady = FINAL_REQUIRED_CLUE_IDS.every((clueId) =>
+    gameState.discoveredClueIds.includes(clueId),
+  );
+  const accusationStatus =
+    caseOutcome?.verdict === "case-resolved"
+      ? "resolved"
+      : caseOutcome?.verdict === "false-accusation"
+        ? "failed"
+        : evidenceChainReady
+          ? "ready"
+          : "locked";
+  const caseResolved = caseOutcome?.verdict === "case-resolved";
+
+  const handleConfirmAccusation = (suspectId: string) => {
+    const result = validateFinalAccusation(gameState.discoveredClueIds, suspectId);
+
+    setLastAccusationResult(result);
+
+    if (result.verdict === "insufficient-evidence") {
+      return;
+    }
+
+    setIsAccusationOpen(false);
+
+    setCaseOutcome({
+      suspectId,
+      verdict: result.verdict,
+      score: buildCaseScore({
+        discoveredCluesCount: gameState.discoveredClueIds.length,
+        totalCluesCount: clues.length,
+        keyTestimoniesCount: gameState.keyTestimonies.length,
+        isCorrect: result.isCorrect,
+      }),
+      aiLines:
+        result.verdict === "case-resolved"
+          ? FINAL_AI_ARCHIVE_LINES
+          : ["SYSTEM ERROR", "Innocent Target Flagged", "案件失败。"],
+    });
+    setIsEndingOverlayOpen(true);
+  };
+
+  const handleOpenAccusation = () => {
+    if (caseOutcome?.verdict === "case-resolved") {
+      setIsEndingOverlayOpen(true);
+      return;
+    }
+
+    setIsAccusationOpen(true);
+  };
 
   return (
     <main className="relative min-h-[100dvh] px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
@@ -553,7 +622,7 @@ export default function App() {
               }
               onSend={handleSendMessage}
               onReset={handleResetGame}
-              disabled={pendingActiveNpc}
+              disabled={pendingActiveNpc || caseResolved}
               isLoading={pendingActiveNpc}
             />
           </div>
@@ -566,6 +635,8 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
+              accusationStatus={accusationStatus}
+              onOpenAccusation={handleOpenAccusation}
             />
           </div>
         </div>
@@ -592,7 +663,7 @@ export default function App() {
               }
               onSend={handleSendMessage}
               onReset={handleResetGame}
-              disabled={pendingActiveNpc}
+              disabled={pendingActiveNpc || caseResolved}
               isLoading={pendingActiveNpc}
             />
           </div>
@@ -605,9 +676,29 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
+              accusationStatus={accusationStatus}
+              onOpenAccusation={handleOpenAccusation}
             />
           </div>
         </div>
+
+        <AccusationModal
+          isOpen={isAccusationOpen}
+          npcs={runtimeNpcs}
+          discoveredClueIds={gameState.discoveredClueIds}
+          lastResult={lastAccusationResult}
+          onClose={() => setIsAccusationOpen(false)}
+          onConfirm={handleConfirmAccusation}
+        />
+
+        <EndingOverlay
+          endingState={isEndingOverlayOpen ? caseOutcome : null}
+          caseFile={activeCaseFile}
+          culpritSummary={caseTruth}
+          clues={clues}
+          npcs={runtimeNpcs}
+          onClose={() => setIsEndingOverlayOpen(false)}
+        />
       </div>
     </main>
   );

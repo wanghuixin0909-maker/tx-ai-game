@@ -28,6 +28,8 @@ interface CaseFilePanelProps {
   discoveredClueIds: string[];
   keyTestimonies: CaseTestimony[];
   progressLabel: string;
+  accusationStatus: "locked" | "ready" | "resolved" | "failed";
+  onOpenAccusation: () => void;
   clueStates?: Record<string, ClueUnlockState>;
   onClueUnlock?: () => void;
 }
@@ -89,6 +91,8 @@ export function CaseFilePanel({
   discoveredClueIds,
   keyTestimonies,
   progressLabel,
+  accusationStatus,
+  onOpenAccusation,
   clueStates = {},
   onClueUnlock,
 }: CaseFilePanelProps) {
@@ -119,8 +123,29 @@ export function CaseFilePanel({
       subtitle="案件信息按摘要、证词、线索分类整理。"
       className="flex h-full min-h-[24rem] flex-col overflow-hidden p-4 sm:p-5"
       action={
-        <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
-          {discoveredClues.length}/{clues.length} records
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
+            {discoveredClues.length}/{clues.length} records
+          </div>
+          <button
+            type="button"
+            onClick={onOpenAccusation}
+            className={`rounded-full border px-3.5 py-2 text-[0.64rem] font-medium uppercase tracking-[0.16em] transition ${
+              accusationStatus === "resolved"
+                ? "border-[#5ef2ff55] bg-[rgba(94,242,255,0.12)] text-[#CFF9FF]"
+                : accusationStatus === "failed"
+                  ? "border-[#ff6b6b55] bg-[rgba(255,107,107,0.12)] text-[#FFD0D0]"
+                  : accusationStatus === "ready"
+                    ? "border-[#ffd15e55] bg-[rgba(255,209,94,0.12)] text-[#FFE7A8] hover:-translate-y-0.5 hover:bg-[rgba(255,209,94,0.18)]"
+                    : "border-white/10 bg-white/[0.04] text-[#D7DEE7] hover:-translate-y-0.5 hover:bg-white/[0.08]"
+            }`}
+          >
+            {accusationStatus === "resolved"
+              ? "Case Closed"
+              : accusationStatus === "failed"
+                ? "Reopen File"
+                : "Final Accusation"}
+          </button>
         </div>
       }
     >

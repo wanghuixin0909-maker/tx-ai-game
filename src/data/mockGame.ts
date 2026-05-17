@@ -5,6 +5,7 @@ const caseBible = caseBibleData as CaseBibleData;
 
 // 真正的凶手 ID（仅用于验证玩家指控）
 export const culpritId = caseBible.truth.culpritId;
+export const caseTruth = { ...caseBible.truth };
 
 export const caseFile: CaseMeta = {
   id: caseBible.case.id,

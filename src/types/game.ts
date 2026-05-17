@@ -3,6 +3,10 @@ export type ClueStatus = "locked" | "unlocked" | "verified";
 export type SpeakerType = "npc" | "player" | "system";
 export type MobilePanel = "chat" | "npcs" | "case-file";
 export type NpcLyingTendency = "low" | "medium" | "high";
+export type AccusationVerdict =
+  | "insufficient-evidence"
+  | "case-resolved"
+  | "false-accusation";
 
 export interface CaseVictim {
   name: string;
@@ -99,6 +103,35 @@ export interface GameState {
   mobilePanel: MobilePanel;
   casePhase: string;
   npcStates: Record<string, NpcRuntimeState>;
+}
+
+export interface AccusationCheckResult {
+  suspectId: string;
+  verdict: AccusationVerdict;
+  isCorrect: boolean;
+  requiredClueIds: string[];
+  missingClueIds: string[];
+}
+
+export interface SuspectInsight {
+  suspectId: string;
+  suspicionLabel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  matchedEvidenceCount: number;
+  matchedEvidenceIds: string[];
+}
+
+export interface CaseScore {
+  clueCompleteness: number;
+  interrogationEfficiency: number;
+  deductionAccuracy: number;
+  overall: number;
+}
+
+export interface EndingState {
+  suspectId: string;
+  verdict: AccusationVerdict;
+  score: CaseScore;
+  aiLines: string[];
 }
 
 export interface CaseBibleNpc extends NpcPersonaProfile {
