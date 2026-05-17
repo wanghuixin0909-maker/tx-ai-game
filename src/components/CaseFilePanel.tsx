@@ -1,17 +1,15 @@
 import { useState } from "react";
 import type { CaseMeta, CaseTestimony, Clue, Npc } from "../types/game";
-import { AccusationPanel } from "./AccusationPanel";
 import { CluePanel } from "./CluePanel";
 import { PanelFrame } from "./PanelFrame";
 
-type CaseFileTab = "summary" | "testimony" | "clues" | "accusation";
+type CaseFileTab = "summary" | "testimony" | "clues";
 type TestimonyKind = "contradiction" | "special" | "timeline";
 
 const CASE_FILE_TABS: Array<{ id: CaseFileTab; label: string }> = [
   { id: "summary", label: "案件摘要" },
   { id: "testimony", label: "关键证词" },
   { id: "clues", label: "线索" },
-  { id: "accusation", label: "指控凶手" },
 ];
 
 const TIMELINE_CLUE_IDS = new Set(["thermal-gap", "maintenance-route"]);
@@ -32,8 +30,6 @@ interface CaseFilePanelProps {
   progressLabel: string;
   clueStates?: Record<string, ClueUnlockState>;
   onClueUnlock?: () => void;
-  onAccusation: (suspectId: string) => void;
-  accusationResult: boolean | null;
 }
 
 function getTestimonyKind(testimony: CaseTestimony): TestimonyKind {
@@ -95,8 +91,6 @@ export function CaseFilePanel({
   progressLabel,
   clueStates = {},
   onClueUnlock,
-  onAccusation,
-  accusationResult,
 }: CaseFilePanelProps) {
   const [activeTab, setActiveTab] = useState<CaseFileTab>("summary");
   const clueById = new Map(clues.map((clue) => [clue.id, clue]));
@@ -284,16 +278,6 @@ export function CaseFilePanel({
               clueStates={clueStates}
             />
           </div>
-        ) : null}
-
-        {activeTab === "accusation" ? (
-          <AccusationPanel
-            npcs={npcs}
-            discoveredCluesCount={discoveredClues.length}
-            onSubmit={onAccusation}
-            isSubmitted={accusationResult !== null}
-            isCorrect={accusationResult}
-          />
         ) : null}
       </div>
     </PanelFrame>

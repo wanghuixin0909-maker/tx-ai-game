@@ -3,22 +3,15 @@ import { CaseFilePanel } from "./components/CaseFilePanel";
 import { ChatWindow } from "./components/ChatWindow";
 import { NpcSidebar } from "./components/NpcSidebar";
 import { PlayerInput } from "./components/PlayerInput";
-import { useClueUnlockAnimation } from "./hooks/useClueUnlockAnimation";
-import { useSoundEffects } from "./hooks/useSoundEffects";
 import {
   caseFile,
   clues,
-  culpritId,
   initialConversations,
   npcs,
   scriptedReplies,
   starterClueIds,
 } from "./data/mockGame";
 import { ChatApiError, fetchNpcReply } from "./lib/chatApi";
-import {
-  buildKeywordIndex,
-  selectReply,
-} from "./lib/replyMatcher";
 import {
   clearGameMemory,
   loadGameMemory,
@@ -52,12 +45,6 @@ const CASE_PHASES = [
 const validNpcIds = npcs.map((npc) => npc.id);
 const validClueIds = clues.map((clue) => clue.id);
 const npcNameById = Object.fromEntries(npcs.map((npc) => [npc.id, npc.name]));
-
-// 构建所有 NPC 的关键词索引
-const keywordIndices: Record<string, ReturnType<typeof buildKeywordIndex>> = {};
-for (const [npcId, replies] of Object.entries(scriptedReplies)) {
-  keywordIndices[npcId] = buildKeywordIndex(replies);
-}
 
 function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages.map((message) => ({
@@ -281,8 +268,6 @@ export default function App() {
   const skipCaseFilePersistenceRef = useRef(false);
   const skipRecentChatPersistenceRef = useRef(false);
   const requestEpochRef = useRef(0);
-  // 记录每个 NPC 已使用的回复索引（避免重复）
-  const usedReplyIndicesRef = useRef<Record<string, Set<number>>>({});
 
   const [gameState, setGameState] = useState<GameState>(() => {
     const initialState = createInitialGameState();
@@ -313,7 +298,6 @@ export default function App() {
     };
   });
   const [pendingNpcIds, setPendingNpcIds] = useState<string[]>([]);
-  const [accusationResult, setAccusationResult] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!persistenceReadyRef.current) {
@@ -376,28 +360,13 @@ export default function App() {
 
     const requestEpoch = requestEpochRef.current;
     const playerMessage = createPlayerMessage(trimmed);
-
-    // 获取该 NPC 的回复池和关键词索引
+    const currentConversation = gameState.conversations[npcId] ?? [];
+    const currentPlayerTurns = currentConversation.filter(
+      (message) => message.speakerType === "player",
+    ).length;
     const replyPool = scriptedReplies[npcId] ?? [];
-    const keywordIndex = keywordIndices[npcId] ?? [];
-    const usedIndices = usedReplyIndicesRef.current[npcId] ?? new Set<number>();
-
-    // 使用关键词匹配选择回复
-    const selected = selectReply(
-      trimmed,
-      replyPool,
-      keywordIndex,
-      gameState.discoveredClueIds,
-      usedIndices,
-    );
-
-    // 记录已使用的索引
-    if (selected) {
-      if (!usedReplyIndicesRef.current[npcId]) {
-        usedReplyIndicesRef.current[npcId] = new Set<number>();
-      }
-      usedReplyIndicesRef.current[npcId].add(selected.matchedIndex);
-    }
+    const scriptedReply =
+      replyPool.length > 0 ? replyPool[currentPlayerTurns % replyPool.length] : undefined;
 
     setGameState((current) => ({
       ...current,
@@ -424,7 +393,7 @@ export default function App() {
           current,
           npcId,
           response.reply,
-          selected?.reply.unlockClueIds,
+          scriptedReply?.unlockClueIds,
         ),
       );
     } catch (error) {
@@ -477,27 +446,13 @@ export default function App() {
     }));
   };
 
-  const handleAccusation = (suspectId: string) => {
-    const isCorrect = suspectId === culpritId;
-    setAccusationResult(isCorrect);
-    if (isCorrect) {
-      playSound("unlock");
-    }
-  };
-
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
 
-  const { playSound } = useSoundEffects();
-  const { clueStates } = useClueUnlockAnimation(
-    gameState.discoveredClueIds,
-    () => playSound("unlock"),
-  );
-
   return (
-    <main className="relative min-h-screen overflow-hidden px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+    <main className="relative min-h-[100dvh] px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-      <div className="relative mx-auto flex h-[calc(100vh-2rem)] max-w-[1700px] flex-col gap-4 overflow-hidden">
+      <div className="relative mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-[1700px] flex-col gap-4">
         <header className="cyber-panel p-4 sm:p-5">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
@@ -611,9 +566,6 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
-              clueStates={clueStates}
-              onAccusation={handleAccusation}
-              accusationResult={accusationResult}
             />
           </div>
         </div>
@@ -628,13 +580,11 @@ export default function App() {
             />
           </div>
 
-          <div className="flex flex-col gap-3.5 min-h-0">
-            <div className="flex-1 overflow-hidden rounded-3xl">
-              <ChatWindow
-                activeNpc={activeNpc}
-                messages={activeMessages}
-              />
-            </div>
+          <div className="min-h-0 flex flex-col gap-3.5">
+            <ChatWindow
+              activeNpc={activeNpc}
+              messages={activeMessages}
+            />
             <PlayerInput
               draftMessage={gameState.draftMessage}
               onDraftChange={(draftMessage) =>
@@ -655,9 +605,6 @@ export default function App() {
               discoveredClueIds={gameState.discoveredClueIds}
               keyTestimonies={gameState.keyTestimonies}
               progressLabel={progressLabel}
-              clueStates={clueStates}
-              onAccusation={handleAccusation}
-              accusationResult={accusationResult}
             />
           </div>
         </div>
