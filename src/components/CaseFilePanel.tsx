@@ -149,34 +149,35 @@ export function CaseFilePanel({
         </div>
       }
     >
-      <div className="mb-3 shrink-0 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {CASE_FILE_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`terminal-tab flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-medium tracking-[0.08em] ${
-              activeTab === tab.id ? "is-active" : ""
-            }`}
-          >
-            {tab.label}
-            {tab.id === "testimony" && keyTestimonies.length > 0 && (
-              <span className="rounded-full bg-[#ffd15e]/25 px-1.5 py-0.5 text-[0.58rem] text-[#ffd15e]">
-                {keyTestimonies.length}
-              </span>
-            )}
-            {tab.id === "clues" && discoveredClues.length > 0 && (
-              <span className="rounded-full bg-[#8eb2c1]/25 px-1.5 py-0.5 text-[0.58rem] text-[#8eb2c1]">
-                {discoveredClues.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <div className="flex h-full min-h-0 flex-1 flex-col">
+        <div className="mb-3 shrink-0 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {CASE_FILE_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`terminal-tab flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-medium tracking-[0.08em] ${
+                activeTab === tab.id ? "is-active" : ""
+              }`}
+            >
+              {tab.label}
+              {tab.id === "testimony" && keyTestimonies.length > 0 && (
+                <span className="rounded-full bg-[#ffd15e]/25 px-1.5 py-0.5 text-[0.58rem] text-[#ffd15e]">
+                  {keyTestimonies.length}
+                </span>
+              )}
+              {tab.id === "clues" && discoveredClues.length > 0 && (
+                <span className="rounded-full bg-[#8eb2c1]/25 px-1.5 py-0.5 text-[0.58rem] text-[#8eb2c1]">
+                  {discoveredClues.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
-        {activeTab === "summary" ? (
-          <div className="space-y-3">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
+          {activeTab === "summary" ? (
+            <div className="space-y-3">
             <section className="cyber-card rounded-[22px] p-3.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                 案件背景
@@ -226,11 +227,11 @@ export function CaseFilePanel({
                 ))}
               </div>
             </section>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
 
-        {activeTab === "testimony" ? (
-          <div className="space-y-3">
+          {activeTab === "testimony" ? (
+            <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               <StatCard label="矛盾证词" value={testimonyCounts.contradiction} />
               <StatCard label="特殊发言" value={testimonyCounts.special} />
@@ -285,11 +286,11 @@ export function CaseFilePanel({
                 <EmptyState text="关键证词会在 NPC 提供可落档信息后自动出现在这里。" />
               )}
             </div>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
 
-        {activeTab === "clues" ? (
-          <div className="space-y-3">
+          {activeTab === "clues" ? (
+            <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               <StatCard label="已发现线索" value={discoveredClues.length} />
               <StatCard label="证据" value={evidenceClues.length} />
@@ -302,8 +303,9 @@ export function CaseFilePanel({
               discoveredClueIds={new Set(discoveredClueIds)}
               clueStates={clueStates}
             />
-          </div>
-        ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
     </PanelFrame>
   );

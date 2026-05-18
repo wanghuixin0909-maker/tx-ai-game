@@ -672,7 +672,7 @@ export default function App() {
             />
           </div>
 
-          <div className="h-full min-h-0">
+          <div className="flex h-full min-h-0 flex-col">
             <CaseFilePanel
               caseFile={activeCaseFile}
               clues={clues}
