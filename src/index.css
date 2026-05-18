@@ -113,7 +113,6 @@ textarea::placeholder {
 }
 
 .cyber-panel.npc-panel {
-  height: auto;
   min-height: 24rem;
   overflow: visible;
 }
