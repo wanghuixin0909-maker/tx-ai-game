@@ -28,25 +28,26 @@ export function NpcSidebar({
       subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
       className="npc-panel h-full min-h-0 p-5 sm:p-6"
     >
-      <div className="space-y-3.5">
-        {npcs.map((npc) => {
-          const latestMessage = conversations[npc.id]?.at(-1);
-          const isActive = npc.id === selectedNpcId;
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
+        <div className="space-y-3.5">
+          {npcs.map((npc) => {
+            const latestMessage = conversations[npc.id]?.at(-1);
+            const isActive = npc.id === selectedNpcId;
 
-          return (
-            <button
-              key={npc.id}
-              type="button"
-              onClick={() => onSelect(npc.id)}
-              className={`group relative w-full overflow-hidden rounded-[26px] border px-4 py-4 text-left transition-all duration-300 ${
-                isActive
-                  ? "border-white/15 bg-[rgba(142,178,193,0.08)] shadow-[0_10px_24px_rgba(7,12,20,0.16)]"
-                  : "border-white/8 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]"
-              }`}
-              style={{
-                boxShadow: isActive ? `0 0 20px ${npc.accentColor}15, 0 10px 24px rgba(7,12,20,0.16)` : undefined,
-              }}
-            >
+            return (
+              <button
+                key={npc.id}
+                type="button"
+                onClick={() => onSelect(npc.id)}
+                className={`group relative w-full overflow-hidden rounded-[26px] border px-4 py-4 text-left transition-all duration-300 ${
+                  isActive
+                    ? "border-white/15 bg-[rgba(142,178,193,0.08)] shadow-[0_10px_24px_rgba(7,12,20,0.16)]"
+                    : "border-white/8 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]"
+                }`}
+                style={{
+                  boxShadow: isActive ? `0 0 20px ${npc.accentColor}15, 0 10px 24px rgba(7,12,20,0.16)` : undefined,
+                }}
+              >
               {/* 顶部光效 */}
               <div
                 className="absolute inset-x-0 top-0 h-px transition-opacity duration-300"
@@ -126,9 +127,10 @@ export function NpcSidebar({
                   style={{ background: `linear-gradient(90deg, transparent, ${npc.accentColor}, transparent)` }}
                 />
               )}
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </PanelFrame>
   );

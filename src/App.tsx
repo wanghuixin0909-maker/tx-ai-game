@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AccusationModal } from "./components/AccusationModal";
 import { CaseFilePanel } from "./components/CaseFilePanel";
 import { ChatWindow } from "./components/ChatWindow";
@@ -275,6 +275,8 @@ function getProgressLabel(discoveredCount: number) {
 }
 
 export default function App() {
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const persistenceReadyRef = useRef(false);
   const skipCaseFilePersistenceRef = useRef(false);
   const skipRecentChatPersistenceRef = useRef(false);
@@ -468,6 +470,8 @@ export default function App() {
 
   const progressLabel = getProgressLabel(gameState.discoveredClueIds.length);
   const pendingActiveNpc = pendingNpcIds.includes(activeNpc.id);
+  const desktopMainGridStyle =
+    headerHeight > 0 ? { minHeight: `calc(100dvh - ${headerHeight}px)` } : undefined;
   const evidenceChainReady = FINAL_REQUIRED_CLUE_IDS.every((clueId) =>
     gameState.discoveredClueIds.includes(clueId),
   );
@@ -518,11 +522,34 @@ export default function App() {
     setIsAccusationOpen(true);
   };
 
+  useLayoutEffect(() => {
+    const headerElement = headerRef.current;
+
+    if (!headerElement) {
+      return;
+    }
+
+    const updateHeaderHeight = () => {
+      setHeaderHeight(headerElement.getBoundingClientRect().height);
+    };
+
+    updateHeaderHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeaderHeight);
+    resizeObserver.observe(headerElement);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, []);
+
   return (
-    <main className="relative min-h-screen overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+    <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-      <div className="relative mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-[1700px] flex-col gap-4 sm:min-h-[calc(100dvh-2.5rem)] lg:h-[calc(100dvh-2.5rem)] lg:min-h-0">
-        <header className="cyber-panel p-4 sm:p-5">
+      <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-4">
+        <header ref={headerRef} className="cyber-panel shrink-0 p-4 sm:p-5">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-[#B8C2CF]">
@@ -609,7 +636,7 @@ export default function App() {
           </div>
 
           <div
-            className={`${gameState.mobilePanel === "chat" ? "flex h-full" : "hidden"} min-h-0 flex-1 flex-col gap-3.5`}
+            className={`${gameState.mobilePanel === "chat" ? "flex h-full" : "hidden"} min-h-0 flex-1 flex-col`}
           >
             <ChatWindow
               activeNpc={activeNpc}
@@ -643,8 +670,11 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:h-full lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
-          <div className="h-full min-h-0">
+        <div
+          style={desktopMainGridStyle}
+          className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch"
+        >
+          <div className="h-full min-h-0 overflow-y-auto">
             <NpcSidebar
               npcs={runtimeNpcs}
               selectedNpcId={gameState.selectedNpcId}
@@ -653,7 +683,7 @@ export default function App() {
             />
           </div>
 
-          <div className="flex h-full min-h-0 flex-col gap-3.5">
+          <div className="flex h-full min-h-0 flex-col">
             <ChatWindow
               activeNpc={activeNpc}
               messages={activeMessages}
@@ -672,7 +702,7 @@ export default function App() {
             />
           </div>
 
-          <div className="flex h-full min-h-0 flex-col">
+          <div className="flex h-full min-h-0 flex-col overflow-y-auto">
             <CaseFilePanel
               caseFile={activeCaseFile}
               clues={clues}
