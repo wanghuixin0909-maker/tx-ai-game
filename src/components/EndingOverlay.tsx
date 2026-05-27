@@ -1,15 +1,13 @@
 import { NpcAvatar } from "../assets/npc/NpcAvatar";
-import type { CaseMeta, Clue, EndingState, Npc } from "../types/game";
+import { getClueTitle } from "../lib/accusation";
+import type { CaseMeta, CaseTruth, Clue, EndingState, Npc } from "../types/game";
 
 interface EndingOverlayProps {
   endingState: EndingState | null;
   caseFile: CaseMeta;
-  culpritSummary: {
-    summary: string;
-    motive: string;
-    coverUp: string;
-  };
+  culpritSummary: CaseTruth;
   clues: Clue[];
+  requiredClueIds: string[];
   npcs: Npc[];
   onClose: () => void;
 }
@@ -30,6 +28,7 @@ export function EndingOverlay({
   caseFile,
   culpritSummary,
   clues,
+  requiredClueIds,
   npcs,
   onClose,
 }: EndingOverlayProps) {
@@ -39,11 +38,6 @@ export function EndingOverlay({
 
   const accusedNpc = npcs.find((npc) => npc.id === endingState.suspectId);
   const isResolved = endingState.verdict === "case-resolved";
-  const requiredEvidence = clues.filter((clue) =>
-    ["badge-scan", "ghost-proxy", "thermal-gap"].includes(clue.id),
-  );
-
-  void caseFile;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(3,6,12,0.9)] px-3 py-6 backdrop-blur-md">
@@ -65,7 +59,7 @@ export function EndingOverlay({
                 {isResolved ? "案件结案" : "系统异常"}
               </p>
               <h2 className="mt-2 text-[2rem] font-semibold tracking-[0.04em] text-slate-50 sm:text-[2.4rem]">
-                {isResolved ? "NEON ECHO // 真相归档" : "错误目标已标记"}
+                {isResolved ? `${caseFile.title} // 真相归档` : "错误目标已标记"}
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-[#D6DEEA]">
                 {isResolved
@@ -122,10 +116,7 @@ export function EndingOverlay({
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <ScoreCard label="线索完整度" value={endingState.score.clueCompleteness} />
-                    <ScoreCard
-                      label="审问效率"
-                      value={endingState.score.interrogationEfficiency}
-                    />
+                    <ScoreCard label="审问效率" value={endingState.score.interrogationEfficiency} />
                     <ScoreCard label="推断准确率" value={endingState.score.deductionAccuracy} />
                     <ScoreCard label="总评分" value={endingState.score.overall} />
                   </div>
@@ -149,12 +140,12 @@ export function EndingOverlay({
                   最终证据链
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {requiredEvidence.map((clue) => (
+                  {requiredClueIds.map((clueId) => (
                     <span
-                      key={clue.id}
+                      key={clueId}
                       className="rounded-full border border-[#8eb2c166] bg-[rgba(142,178,193,0.12)] px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.12em] text-[#E6F3FA]"
                     >
-                      {clue.title}
+                      {getClueTitle(clues, clueId)}
                     </span>
                   ))}
                 </div>

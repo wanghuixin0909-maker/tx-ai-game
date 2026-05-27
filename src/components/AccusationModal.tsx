@@ -1,38 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { NpcAvatar } from "../assets/npc/NpcAvatar";
-import {
-  buildSuspectInsight,
-  FINAL_REQUIRED_CLUE_IDS,
-  getClueTitle,
-} from "../lib/accusation";
-import type { AccusationCheckResult, Npc } from "../types/game";
+import { buildSuspectInsight, getClueTitle } from "../lib/accusation";
+import type { AccusationCheckResult, Clue, Npc } from "../types/game";
 
 interface AccusationModalProps {
   isOpen: boolean;
   npcs: Npc[];
+  clues: Clue[];
   discoveredClueIds: string[];
+  requiredClueIds: string[];
+  suspectEvidenceMap: Record<string, string[]>;
   lastResult: AccusationCheckResult | null;
   onClose: () => void;
   onConfirm: (suspectId: string) => void;
 }
 
-const finalSuspectIds = new Set(["nova", "shade", "echo", "iris"]);
-
 export function AccusationModal({
   isOpen,
   npcs,
+  clues,
   discoveredClueIds,
+  requiredClueIds,
+  suspectEvidenceMap,
   lastResult,
   onClose,
   onConfirm,
 }: AccusationModalProps) {
   const [selectedSuspectId, setSelectedSuspectId] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const suspects = useMemo(
-    () => npcs.filter((npc) => finalSuspectIds.has(npc.id)),
-    [npcs],
-  );
+  const suspects = useMemo(() => npcs, [npcs]);
   const evidenceReady = lastResult?.verdict !== "insufficient-evidence";
   const missingClueIds = lastResult?.missingClueIds ?? [];
 
@@ -101,8 +98,7 @@ export function AccusationModal({
                 最终指控
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-[#D6DEEA]">
-                选择你要正式指控的对象。系统将在提交前校验最终证据链，
-                证据不足时该指控不会成立。
+                选择你要正式指控的对象。系统会校验必要证据链，证据不足时该指控不会成立。
               </p>
             </div>
 
@@ -110,7 +106,9 @@ export function AccusationModal({
               type="button"
               onClick={onClose}
               className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#D7DEE7] transition hover:bg-white/[0.08]"
-            >关闭</button>
+            >
+              关闭
+            </button>
           </div>
 
           <section className="cyber-card rounded-[24px] p-4">
@@ -120,13 +118,11 @@ export function AccusationModal({
                   证据链
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[#E2E8F0]">
-                  必要证据:
-                  {" "}
-                  {FINAL_REQUIRED_CLUE_IDS.map((clueId) => getClueTitle(clueId)).join(" / ")}
+                  必要证据: {requiredClueIds.map((clueId) => getClueTitle(clues, clueId)).join(" / ")}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {FINAL_REQUIRED_CLUE_IDS.map((clueId) => {
+                {requiredClueIds.map((clueId) => {
                   const unlocked = discoveredClueIds.includes(clueId);
 
                   return (
@@ -146,9 +142,9 @@ export function AccusationModal({
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {suspects.map((npc) => {
-              const insight = buildSuspectInsight(npc.id, discoveredClueIds);
+              const insight = buildSuspectInsight(npc.id, discoveredClueIds, suspectEvidenceMap);
               const isSelected = npc.id === selectedSuspectId;
 
               return (
@@ -197,17 +193,13 @@ export function AccusationModal({
                       <p className="mt-1 text-xs leading-5 text-[#AEB8C5]">{npc.role}</p>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-[18px] border border-white/8 bg-black/10 px-3 py-2">
-                          <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">
-                            嫌疑等级
-                          </p>
+                          <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">嫌疑等级</p>
                           <p className="mt-1 text-sm font-semibold text-[#E2E8F0]">
                             {insight.suspicionLabel}
                           </p>
                         </div>
                         <div className="rounded-[18px] border border-white/8 bg-black/10 px-3 py-2">
-                          <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">
-                            关键线索
-                          </p>
+                          <p className="uppercase tracking-[0.14em] text-[#8D9AA9]">关键线索</p>
                           <p className="mt-1 text-sm font-semibold text-[#E2E8F0]">
                             {insight.matchedEvidenceCount}
                           </p>
@@ -227,9 +219,7 @@ export function AccusationModal({
                   证据链不完整，该指控无法成立。
                 </p>
                 <p className="mt-2 text-xs leading-6 text-[#F2C8C8]">
-                  缺失证据:
-                  {" "}
-                  {missingClueIds.map((clueId) => getClueTitle(clueId)).join(" / ")}
+                  缺失证据: {missingClueIds.map((clueId) => getClueTitle(clues, clueId)).join(" / ")}
                 </p>
               </div>
             ) : (

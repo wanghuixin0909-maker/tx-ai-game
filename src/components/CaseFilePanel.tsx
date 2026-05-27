@@ -24,10 +24,12 @@ interface ClueUnlockState {
 interface CaseFilePanelProps {
   caseFile: CaseMeta;
   clues: Clue[];
-  npcs: Npc[];
+  activeNpc: Npc;
   discoveredClueIds: string[];
   keyTestimonies: CaseTestimony[];
   progressLabel: string;
+  currentObjective: string;
+  nextMilestone: string;
   accusationStatus: "locked" | "ready" | "resolved" | "failed";
   onOpenAccusation: () => void;
   clueStates?: Record<string, ClueUnlockState>;
@@ -87,10 +89,12 @@ function EmptyState({ text }: { text: string }) {
 export function CaseFilePanel({
   caseFile,
   clues,
-  npcs,
+  activeNpc,
   discoveredClueIds,
   keyTestimonies,
   progressLabel,
+  currentObjective,
+  nextMilestone,
   accusationStatus,
   onOpenAccusation,
   clueStates = {},
@@ -114,8 +118,6 @@ export function CaseFilePanel({
   const anomalyClues = discoveredClues.filter((clue) => ANOMALY_CLUE_IDS.has(clue.id));
 
   void onClueUnlock;
-
-  const activeNpc = npcs[0];
 
   return (
     <PanelFrame
@@ -178,6 +180,21 @@ export function CaseFilePanel({
         <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
           {activeTab === "summary" ? (
             <div className="space-y-3">
+            <section className="rounded-[22px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] p-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#C9E0EA]">
+                    当前调查目标
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
+                </div>
+                <span className="terminal-pill rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
+                  {activeNpc.name}
+                </span>
+              </div>
+              <p className="mt-3 text-[0.8rem] leading-5 text-[#D5E6EE]">{nextMilestone}</p>
+            </section>
+
             <section className="cyber-card rounded-[22px] p-3.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                 案件背景

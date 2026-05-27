@@ -88,6 +88,27 @@ export interface CaseMeta {
   relationshipMap: string[];
 }
 
+export interface CaseTruth {
+  culpritId: string;
+  summary: string;
+  motive: string;
+  method?: string;
+  coverUp: string;
+}
+
+export interface CaseAccusationConfig {
+  requiredClueIds: string[];
+  suspectEvidenceMap: Record<string, string[]>;
+  successArchiveLines: string[];
+  failureArchiveLines: string[];
+}
+
+export interface CaseCategory {
+  id: string;
+  label: string;
+  description: string;
+}
+
 export interface NpcRuntimeState {
   status: NpcStatus;
   trustLevel: number;
@@ -171,4 +192,23 @@ export interface CaseBibleData {
     coverUp: string;
   };
   npcs: CaseBibleNpc[];
+}
+
+export interface CaseDefinition {
+  id: string;
+  categoryId: string;
+  difficulty: string;
+  estimatedMinutes: number;
+  selectionSummary: string;
+  tags: string[];
+  remoteSupport: boolean;
+  caseFile: CaseMeta;
+  truth: CaseTruth;
+  accusation: CaseAccusationConfig;
+  npcs: Npc[];
+  clues: Clue[];
+  initialConversations: Record<string, ChatMessage[]>;
+  scriptedReplies: Record<string, ChatMessage[]>;
+  starterClueIds: string[];
+  suggestedPrompts: Record<string, string[]>;
 }

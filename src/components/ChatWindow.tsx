@@ -6,10 +6,20 @@ import { PanelFrame } from "./PanelFrame";
 interface ChatWindowProps {
   activeNpc: Npc;
   messages: ChatMessage[];
+  currentObjective: string;
+  nextMilestone: string;
+  responseMode: "remote" | "fallback";
   footer?: ReactNode;
 }
 
-export function ChatWindow({ activeNpc, messages, footer }: ChatWindowProps) {
+export function ChatWindow({
+  activeNpc,
+  messages,
+  currentObjective,
+  nextMilestone,
+  responseMode,
+  footer,
+}: ChatWindowProps) {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const previousFeedStateRef = useRef<{ npcId: string; messageCount: number } | null>(null);
 
@@ -70,15 +80,26 @@ export function ChatWindow({ activeNpc, messages, footer }: ChatWindowProps) {
               <p className="mt-1 text-sm font-medium uppercase text-[#E2E8F0]">
                 {activeNpc.status}
               </p>
+              <p className="mt-1 text-[0.64rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
+                {responseMode === "remote" ? "远程响应" : "离线推演"}
+              </p>
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
+          <div className="mt-3 grid gap-2.5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)]">
             <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">Focus</p>
               <p className="mt-2 text-sm leading-6 text-[#D6DEEA]">
                 {activeNpc.investigationFocus}
               </p>
+            </div>
+
+            <div className="rounded-[20px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] px-3.5 py-3">
+              <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#C9E0EA]">
+                Current Objective
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
+              <p className="mt-2 text-[0.78rem] leading-5 text-[#C9D8E2]">{nextMilestone}</p>
             </div>
 
             <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">

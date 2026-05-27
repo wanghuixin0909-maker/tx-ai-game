@@ -19,27 +19,22 @@ export function useClueUnlockAnimation(
   onUnlock?: () => void,
 ) {
   const previousIdsRef = useRef<string[]>([]);
+  const hasInitializedRef = useRef(false);
   const [newlyUnlockedIds, setNewlyUnlockedIds] = useState<Set<string>>(new Set());
   const [clueStates, setClueStates] = useState<Record<string, ClueUnlockState>>({});
 
   useEffect(() => {
+    if (!hasInitializedRef.current) {
+      previousIdsRef.current = [...discoveredClueIds];
+      hasInitializedRef.current = true;
+      return;
+    }
+
     const previousIds = new Set(previousIdsRef.current);
     const newIds = discoveredClueIds.filter((id) => !previousIds.has(id));
 
     if (newIds.length > 0) {
-      setNewlyUnlockedIds(new Set(newIds));
-
-      setClueStates((prev) => {
-        const updated = { ...prev };
-        newIds.forEach((id) => {
-          updated[id] = { isNewlyUnlocked: true, showBadge: true };
-        });
-        return updated;
-      });
-
-      onUnlock?.();
-
-      setTimeout(() => {
+      const animationResetTimer = window.setTimeout(() => {
         setClueStates((prev) => {
           const updated = { ...prev };
           newIds.forEach((id) => {
@@ -51,7 +46,7 @@ export function useClueUnlockAnimation(
         });
       }, ANIMATION_RESET_DELAY);
 
-      setTimeout(() => {
+      const badgeClearTimer = window.setTimeout(() => {
         setClueStates((prev) => {
           const updated = { ...prev };
           newIds.forEach((id) => {
@@ -67,6 +62,24 @@ export function useClueUnlockAnimation(
           return next;
         });
       }, NEW_BADGE_DURATION);
+
+      setNewlyUnlockedIds(new Set(newIds));
+
+      setClueStates((prev) => {
+        const updated = { ...prev };
+        newIds.forEach((id) => {
+          updated[id] = { isNewlyUnlocked: true, showBadge: true };
+        });
+        return updated;
+      });
+
+      onUnlock?.();
+      previousIdsRef.current = [...discoveredClueIds];
+
+      return () => {
+        window.clearTimeout(animationResetTimer);
+        window.clearTimeout(badgeClearTimer);
+      };
     }
 
     previousIdsRef.current = [...discoveredClueIds];

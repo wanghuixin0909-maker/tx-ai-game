@@ -1,46 +1,21 @@
-import { clues, culpritId } from "../data/mockGame";
-import type { AccusationCheckResult, CaseScore, SuspectInsight } from "../types/game";
-
-export const FINAL_REQUIRED_CLUE_IDS = [
-  "badge-scan",
-  "ghost-proxy",
-  "thermal-gap",
-] as const;
-
-export const FINAL_AI_ARCHIVE_LINES = [
-  "案件归档完成。",
-  "真相已恢复。",
-  "记忆碎片同步结束。",
-];
-
-const suspectEvidenceMap: Record<string, string[]> = {
-  nova: ["badge-scan"],
-  shade: ["ghost-proxy", "mirror-contract"],
-  echo: ["thermal-gap"],
-  iris: [
-    "badge-scan",
-    "ghost-proxy",
-    "thermal-gap",
-    "vault-key",
-    "maintenance-route",
-    "mirror-contract",
-  ],
-};
+import type { AccusationCheckResult, CaseScore, Clue, SuspectInsight } from "../types/game";
 
 function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-export function getClueTitle(clueId: string) {
+export function getClueTitle(clues: Clue[], clueId: string) {
   return clues.find((clue) => clue.id === clueId)?.title ?? clueId;
 }
 
 export function validateFinalAccusation(
   discoveredClueIds: string[],
   suspectId: string,
+  requiredClueIds: string[],
+  culpritId: string,
 ): AccusationCheckResult {
   const discoveredClueSet = new Set(discoveredClueIds);
-  const missingClueIds = FINAL_REQUIRED_CLUE_IDS.filter((clueId) => !discoveredClueSet.has(clueId));
+  const missingClueIds = requiredClueIds.filter((clueId) => !discoveredClueSet.has(clueId));
   const isCorrect = suspectId === culpritId;
 
   return {
@@ -52,7 +27,7 @@ export function validateFinalAccusation(
           ? "case-resolved"
           : "false-accusation",
     isCorrect,
-    requiredClueIds: [...FINAL_REQUIRED_CLUE_IDS],
+    requiredClueIds: [...requiredClueIds],
     missingClueIds,
   };
 }
@@ -60,6 +35,7 @@ export function validateFinalAccusation(
 export function buildSuspectInsight(
   suspectId: string,
   discoveredClueIds: string[],
+  suspectEvidenceMap: Record<string, string[]>,
 ): SuspectInsight {
   const clueSet = new Set(discoveredClueIds);
   const matchedEvidenceIds = (suspectEvidenceMap[suspectId] ?? []).filter((clueId) =>

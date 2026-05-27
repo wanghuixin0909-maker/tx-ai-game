@@ -6,27 +6,28 @@ import type {
   NpcStatus,
 } from "../types/game";
 
+const CASE_LIBRARY_STORAGE_KEY = "neon-echo-case-library-v1";
 const LEGACY_STORAGE_KEY = "neon-echo-local-memory-v1";
-const CASE_FILE_STORAGE_KEY = "neon-echo-case-file-v3";
-const RECENT_CHAT_STORAGE_KEY = "neon-echo-recent-chat-v3";
-const GAME_STATE_STORAGE_KEY = "neon-echo-game-state-v2";
+const LEGACY_CASE_FILE_STORAGE_KEY = "neon-echo-case-file-v3";
+const LEGACY_RECENT_CHAT_STORAGE_KEY = "neon-echo-recent-chat-v3";
+const LEGACY_GAME_STATE_STORAGE_KEY = "neon-echo-game-state-v2";
+
 const validSpeakerTypes = new Set(["npc", "player", "system"]);
 const validNpcStatuses = new Set<NpcStatus>(["online", "guarded", "suspect", "offline"]);
 
 export const MAX_RECENT_MESSAGES_PER_NPC = 18;
 export const MAX_CASE_TESTIMONIES = 12;
 
-type PersistedCaseFileMemory = Pick<
+type PersistedCaseMemory = Pick<
   GameState,
-  "activeCaseId" | "discoveredClueIds" | "casePhase" | "keyTestimonies"
+  | "activeCaseId"
+  | "selectedNpcId"
+  | "conversations"
+  | "discoveredClueIds"
+  | "keyTestimonies"
+  | "casePhase"
+  | "npcStates"
 >;
-
-type PersistedRecentChatMemory = Pick<
-  GameState,
-  "selectedNpcId" | "conversations" | "npcStates"
->;
-
-type PersistedGameMemory = PersistedCaseFileMemory & PersistedRecentChatMemory;
 
 type PersistedGameStateMessage = ChatMessage & {
   conversationNpcId: string;
@@ -34,6 +35,11 @@ type PersistedGameStateMessage = ChatMessage & {
 
 type MinimalPersistedGameState = {
   messages: PersistedGameStateMessage[];
+};
+
+type PersistedCaseLibrary = {
+  selectedCaseId?: string;
+  cases?: Record<string, unknown>;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -66,29 +72,6 @@ function trimMessages(messages: ChatMessage[]): ChatMessage[] {
   return cloneMessages(messages.slice(-MAX_RECENT_MESSAGES_PER_NPC));
 }
 
-function createMinimalPersistedGameState(
-  memory: PersistedRecentChatMemory,
-): MinimalPersistedGameState {
-  return {
-    messages: Object.entries(memory.conversations).flatMap(([npcId, messages]) =>
-      trimMessages(messages).map((message) => ({
-        ...message,
-        conversationNpcId: npcId,
-      })),
-    ),
-  };
-}
-
-function createDefaultMemory(defaultMemory: PersistedGameMemory): PersistedGameMemory {
-  return {
-    ...defaultMemory,
-    conversations: cloneConversations(defaultMemory.conversations),
-    discoveredClueIds: [...defaultMemory.discoveredClueIds],
-    keyTestimonies: cloneTestimonies(defaultMemory.keyTestimonies),
-    npcStates: sanitizeNpcStates(defaultMemory.npcStates, defaultMemory.npcStates),
-  };
-}
-
 function parseStorageItem(key: string): unknown {
   if (typeof window === "undefined") {
     return null;
@@ -105,6 +88,19 @@ function parseStorageItem(key: string): unknown {
   } catch {
     return null;
   }
+}
+
+function parseCaseLibrary(): PersistedCaseLibrary {
+  const parsed = parseStorageItem(CASE_LIBRARY_STORAGE_KEY);
+  return isRecord(parsed) ? (parsed as PersistedCaseLibrary) : {};
+}
+
+function writeCaseLibrary(library: PersistedCaseLibrary) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(CASE_LIBRARY_STORAGE_KEY, JSON.stringify(library));
 }
 
 function sanitizeChatMessage(value: unknown, validClueIds: Set<string>): ChatMessage | null {
@@ -254,7 +250,7 @@ function sanitizeConversations(
   return conversations;
 }
 
-function sanitizeConversationsFromGameState(
+function sanitizeConversationsFromMinimalState(
   value: unknown,
   defaultConversations: Record<string, ChatMessage[]>,
   validNpcIds: string[],
@@ -341,19 +337,97 @@ function sanitizeKeyTestimonies(
   return cloneTestimonies(deduped.slice(-MAX_CASE_TESTIMONIES));
 }
 
-export function loadGameMemory(
-  defaultMemory: PersistedGameMemory,
+function createDefaultMemory(defaultMemory: PersistedCaseMemory): PersistedCaseMemory {
+  return {
+    ...defaultMemory,
+    conversations: cloneConversations(defaultMemory.conversations),
+    discoveredClueIds: [...defaultMemory.discoveredClueIds],
+    keyTestimonies: cloneTestimonies(defaultMemory.keyTestimonies),
+    npcStates: sanitizeNpcStates(defaultMemory.npcStates, defaultMemory.npcStates),
+  };
+}
+
+function sanitizePersistedCaseMemory(
+  source: unknown,
+  defaultMemory: PersistedCaseMemory,
   validNpcIds: string[],
   validClueIds: string[],
-): PersistedGameMemory {
-  if (typeof window === "undefined") {
-    return createDefaultMemory(defaultMemory);
-  }
+): PersistedCaseMemory {
+  const candidate = isRecord(source) ? source : {};
+  const validNpcIdSet = new Set(validNpcIds);
+  const validClueIdSet = new Set(validClueIds);
 
-  const caseFileMemory = parseStorageItem(CASE_FILE_STORAGE_KEY);
-  const recentChatMemory = parseStorageItem(RECENT_CHAT_STORAGE_KEY);
-  const minimalGameState = parseStorageItem(GAME_STATE_STORAGE_KEY);
+  return {
+    activeCaseId:
+      typeof candidate.activeCaseId === "string" && candidate.activeCaseId
+        ? candidate.activeCaseId
+        : defaultMemory.activeCaseId,
+    selectedNpcId:
+      typeof candidate.selectedNpcId === "string" && validNpcIdSet.has(candidate.selectedNpcId)
+        ? candidate.selectedNpcId
+        : defaultMemory.selectedNpcId,
+    conversations: sanitizeConversations(
+      candidate.conversations,
+      defaultMemory.conversations,
+      validNpcIds,
+      validClueIdSet,
+    ),
+    discoveredClueIds: sanitizeDiscoveredClueIds(
+      candidate.discoveredClueIds,
+      defaultMemory.discoveredClueIds,
+      validClueIdSet,
+    ),
+    keyTestimonies:
+      sanitizeKeyTestimonies(candidate.keyTestimonies, validNpcIdSet, validClueIdSet) ??
+      cloneTestimonies(defaultMemory.keyTestimonies),
+    casePhase:
+      typeof candidate.casePhase === "string" && candidate.casePhase.trim()
+        ? candidate.casePhase
+        : defaultMemory.casePhase,
+    npcStates: sanitizeNpcStates(candidate.npcStates, defaultMemory.npcStates),
+  };
+}
+
+function createMinimalPersistedGameState(
+  memory: PersistedCaseMemory,
+): MinimalPersistedGameState {
+  return {
+    messages: Object.entries(memory.conversations).flatMap(([npcId, messages]) =>
+      trimMessages(messages).map((message) => ({
+        ...message,
+        conversationNpcId: npcId,
+      })),
+    ),
+  };
+}
+
+function createSnapshot(memory: PersistedCaseMemory): PersistedCaseMemory {
+  return {
+    activeCaseId: memory.activeCaseId,
+    selectedNpcId: memory.selectedNpcId,
+    conversations: Object.fromEntries(
+      Object.entries(memory.conversations).map(([npcId, messages]) => [npcId, trimMessages(messages)]),
+    ),
+    discoveredClueIds: Array.from(new Set(memory.discoveredClueIds)),
+    keyTestimonies: cloneTestimonies(memory.keyTestimonies.slice(-MAX_CASE_TESTIMONIES)),
+    casePhase: memory.casePhase,
+    npcStates: sanitizeNpcStates(memory.npcStates, memory.npcStates),
+  };
+}
+
+function loadLegacyMemory(
+  defaultMemory: PersistedCaseMemory,
+  validNpcIds: string[],
+  validClueIds: string[],
+): PersistedCaseMemory | null {
+  const caseFileMemory = parseStorageItem(LEGACY_CASE_FILE_STORAGE_KEY);
+  const recentChatMemory = parseStorageItem(LEGACY_RECENT_CHAT_STORAGE_KEY);
+  const minimalGameState = parseStorageItem(LEGACY_GAME_STATE_STORAGE_KEY);
   const legacyMemory = parseStorageItem(LEGACY_STORAGE_KEY);
+
+  if (!caseFileMemory && !recentChatMemory && !minimalGameState && !legacyMemory) {
+    return null;
+  }
 
   const caseSource = isRecord(caseFileMemory)
     ? caseFileMemory
@@ -369,7 +443,7 @@ export function loadGameMemory(
   const validNpcIdSet = new Set(validNpcIds);
   const validClueIdSet = new Set(validClueIds);
   const conversations =
-    sanitizeConversationsFromGameState(
+    sanitizeConversationsFromMinimalState(
       minimalGameState,
       defaultMemory.conversations,
       validNpcIds,
@@ -408,60 +482,114 @@ export function loadGameMemory(
   };
 }
 
-export function saveCaseFileMemory(memory: PersistedCaseFileMemory) {
+function clearLegacyStorage() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(LEGACY_CASE_FILE_STORAGE_KEY);
+  window.localStorage.removeItem(LEGACY_RECENT_CHAT_STORAGE_KEY);
+  window.localStorage.removeItem(LEGACY_GAME_STATE_STORAGE_KEY);
+  window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+}
+
+export function loadSelectedCaseId(defaultCaseId: string, validCaseIds: string[]) {
+  if (typeof window === "undefined") {
+    return defaultCaseId;
+  }
+
+  const storedCaseId = parseCaseLibrary().selectedCaseId;
+  return typeof storedCaseId === "string" && validCaseIds.includes(storedCaseId)
+    ? storedCaseId
+    : defaultCaseId;
+}
+
+export function saveSelectedCaseId(caseId: string) {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    const snapshot: PersistedCaseFileMemory = {
-      activeCaseId: memory.activeCaseId,
-      discoveredClueIds: Array.from(new Set(memory.discoveredClueIds)),
-      casePhase: memory.casePhase,
-      keyTestimonies: cloneTestimonies(memory.keyTestimonies.slice(-MAX_CASE_TESTIMONIES)),
-    };
-
-    window.localStorage.setItem(CASE_FILE_STORAGE_KEY, JSON.stringify(snapshot));
-    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const library = parseCaseLibrary();
+    writeCaseLibrary({
+      ...library,
+      selectedCaseId: caseId,
+      cases: isRecord(library.cases) ? library.cases : {},
+    });
   } catch {
     // Ignore storage failures so gameplay is not interrupted.
   }
 }
 
-export function saveRecentChatMemory(memory: PersistedRecentChatMemory) {
+export function loadCaseMemory(
+  caseId: string,
+  defaultMemory: PersistedCaseMemory,
+  validNpcIds: string[],
+  validClueIds: string[],
+): PersistedCaseMemory {
+  if (typeof window === "undefined") {
+    return createDefaultMemory(defaultMemory);
+  }
+
+  const library = parseCaseLibrary();
+  const storedCases = isRecord(library.cases) ? library.cases : {};
+  const storedCaseMemory = storedCases[caseId];
+
+  if (storedCaseMemory) {
+    return sanitizePersistedCaseMemory(storedCaseMemory, defaultMemory, validNpcIds, validClueIds);
+  }
+
+  const legacyMemory = loadLegacyMemory(defaultMemory, validNpcIds, validClueIds);
+  return legacyMemory?.activeCaseId === caseId
+    ? legacyMemory
+    : createDefaultMemory(defaultMemory);
+}
+
+export function saveCaseMemory(caseId: string, memory: PersistedCaseMemory) {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    const snapshot: PersistedRecentChatMemory = {
-      selectedNpcId: memory.selectedNpcId,
-      conversations: Object.fromEntries(
-        Object.entries(memory.conversations).map(([npcId, messages]) => [npcId, trimMessages(messages)]),
-      ),
-      npcStates: sanitizeNpcStates(memory.npcStates, memory.npcStates),
-    };
+    const library = parseCaseLibrary();
+    const storedCases = isRecord(library.cases) ? library.cases : {};
+    const snapshot = createSnapshot(memory);
 
-    window.localStorage.setItem(RECENT_CHAT_STORAGE_KEY, JSON.stringify(snapshot));
+    writeCaseLibrary({
+      selectedCaseId: caseId,
+      cases: {
+        ...storedCases,
+        [caseId]: snapshot,
+      },
+    });
+
     window.localStorage.setItem(
-      GAME_STATE_STORAGE_KEY,
+      `${CASE_LIBRARY_STORAGE_KEY}:${caseId}:messages`,
       JSON.stringify(createMinimalPersistedGameState(snapshot)),
     );
+    clearLegacyStorage();
   } catch {
     // Ignore storage failures so gameplay is not interrupted.
   }
 }
 
-export function clearGameMemory() {
+export function clearCaseMemory(caseId: string) {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    window.localStorage.removeItem(CASE_FILE_STORAGE_KEY);
-    window.localStorage.removeItem(RECENT_CHAT_STORAGE_KEY);
-    window.localStorage.removeItem(GAME_STATE_STORAGE_KEY);
-    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const library = parseCaseLibrary();
+    const storedCases = { ...(isRecord(library.cases) ? library.cases : {}) };
+    delete storedCases[caseId];
+
+    writeCaseLibrary({
+      ...library,
+      cases: storedCases,
+    });
+
+    window.localStorage.removeItem(`${CASE_LIBRARY_STORAGE_KEY}:${caseId}:messages`);
+    clearLegacyStorage();
   } catch {
     // Ignore storage failures so gameplay is not interrupted.
   }
