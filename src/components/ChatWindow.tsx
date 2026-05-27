@@ -46,7 +46,7 @@ export function ChatWindow({
   return (
     <PanelFrame
       title="Interrogation Feed"
-      className="chat-panel h-full min-h-0 flex-col overflow-hidden p-4 sm:p-5"
+      className="chat-panel h-full min-h-0 max-h-[78dvh] flex-col overflow-hidden p-4 sm:p-5"
     >
       <div className="flex h-full min-h-0 flex-1 flex-col">
         <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
@@ -113,7 +113,7 @@ export function ChatWindow({
 
         <div
           ref={messagesContainerRef}
-          className="chat-feed min-h-0 flex-1 overflow-y-auto rounded-[24px] pr-1"
+          className="chat-feed scroll-secondary min-h-[18rem] max-h-[50dvh] flex-1 overflow-y-auto rounded-[24px] pr-2"
         >
           <div className="space-y-5">
             {messages.map((message) => {

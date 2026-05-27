@@ -131,6 +131,11 @@ export function CaseSelector({
                   <span>{caseDefinition.clues.length} 条核心线索</span>
                 </div>
 
+                <div className="mt-3 flex items-center justify-between text-xs font-medium tracking-[0.12em] text-[#D7DEE7]">
+                  <span>{selected ? "继续当前调查" : "点击进入专属剧本页"}</span>
+                  <span aria-hidden="true">→</span>
+                </div>
+
                 {selected ? (
                   <div className="mt-4 rounded-[18px] border border-[#8eb2c166] bg-[rgba(142,178,193,0.1)] px-3 py-2 text-xs font-medium text-[#E6F3FA]">
                     当前已选中，切换后会自动加载该剧本的独立存档。

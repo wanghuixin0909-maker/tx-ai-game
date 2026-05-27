@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AccusationModal } from "./components/AccusationModal";
 import { CaseFilePanel } from "./components/CaseFilePanel";
+import { CaseHero } from "./components/CaseHero";
 import { CaseSelector } from "./components/CaseSelector";
 import { ChatWindow } from "./components/ChatWindow";
 import { EndingOverlay } from "./components/EndingOverlay";
@@ -45,6 +46,33 @@ interface InvestigationGuidance {
   currentObjective: string;
   suggestedPrompts: string[];
   nextMilestone: string;
+}
+
+const CASE_ROUTE_PREFIX = "/cases/";
+
+function getCasePath(caseId: string) {
+  return `${CASE_ROUTE_PREFIX}${encodeURIComponent(caseId)}`;
+}
+
+function getCaseIdFromPath(pathname: string) {
+  if (!pathname.startsWith(CASE_ROUTE_PREFIX)) {
+    return null;
+  }
+
+  const encodedCaseId = pathname.slice(CASE_ROUTE_PREFIX.length).split("/")[0] ?? "";
+  const caseId = decodeURIComponent(encodedCaseId);
+
+  return caseLibraryById[caseId] ? caseId : null;
+}
+
+function scrollAppToTop() {
+  const main = document.querySelector("main");
+
+  if (main instanceof HTMLElement) {
+    main.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function cloneMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -369,14 +397,16 @@ function buildGuidance(
 }
 
 export default function App() {
-  const headerRef = useRef<HTMLElement | null>(null);
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const caseSelectorRef = useRef<HTMLElement | null>(null);
+  const desktopGridRef = useRef<HTMLDivElement | null>(null);
   const persistenceReadyRef = useRef(false);
   const requestEpochRef = useRef(0);
   const previousPhaseRef = useRef<string | null>(null);
+  const [desktopGridHeight, setDesktopGridHeight] = useState<number | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState("all");
   const [selectedCaseId, setSelectedCaseId] = useState(() =>
-    loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
+    getCaseIdFromPath(window.location.pathname)
+    ?? loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
   );
   const initialCase = caseLibraryById[selectedCaseId] ?? caseLibraryById[defaultCaseId];
   const replyUsageRef = useRef<Record<string, number[]>>(createUsedReplyIndexMap(initialCase.npcs));
@@ -398,6 +428,8 @@ export default function App() {
   });
 
   const activeCase = caseLibraryById[selectedCaseId] ?? caseLibraryById[defaultCaseId];
+  const activeCategoryLabel =
+    caseCategories.find((category) => category.id === activeCase.categoryId)?.label ?? "案件";
   const npcNameById = Object.fromEntries(activeCase.npcs.map((npc) => [npc.id, npc.name]));
   const runtimeNpcs = activeCase.npcs.map((npc) => ({
     ...npc,
@@ -461,33 +493,70 @@ export default function App() {
     return () => window.clearTimeout(noticeTimer);
   }, [activeCase.clues.length, gameState.casePhase, gameState.discoveredClueIds.length]);
 
-  useLayoutEffect(() => {
-    const headerElement = headerRef.current;
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    const canonicalPath = getCasePath(selectedCaseId);
 
-    if (!headerElement) {
-      return;
+    if (currentPath !== canonicalPath) {
+      window.history.replaceState({ caseId: selectedCaseId }, "", canonicalPath);
     }
+  }, [selectedCaseId]);
 
-    const updateHeaderHeight = () => {
-      setHeaderHeight(headerElement.getBoundingClientRect().height);
+  useEffect(() => {
+    const handlePopState = () => {
+      const routeCaseId = getCaseIdFromPath(window.location.pathname);
+
+      if (!routeCaseId || routeCaseId === selectedCaseId) {
+        return;
+      }
+
+      const nextCase = caseLibraryById[routeCaseId];
+
+      requestEpochRef.current += 1;
+      previousPhaseRef.current = null;
+      replyUsageRef.current = createUsedReplyIndexMap(nextCase.npcs);
+      resetTransientUi(nextCase.remoteSupport ? "remote" : "fallback");
+      setSelectedCaseId(routeCaseId);
+      setGameState(hydrateGameState(nextCase));
+      scrollAppToTop();
     };
 
-    updateHeaderHeight();
+    window.addEventListener("popstate", handlePopState);
 
-    const resizeObserver = new ResizeObserver(updateHeaderHeight);
-    resizeObserver.observe(headerElement);
-    window.addEventListener("resize", updateHeaderHeight);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [selectedCaseId]);
+
+  useLayoutEffect(() => {
+    const updateDesktopGridHeight = () => {
+      const desktopGridElement = desktopGridRef.current;
+
+      if (!desktopGridElement) {
+        return;
+      }
+
+      const top = desktopGridElement.getBoundingClientRect().top;
+      const availableHeight = Math.max(window.innerHeight - top, 420);
+      setDesktopGridHeight(availableHeight);
+    };
+
+    updateDesktopGridHeight();
+
+    const resizeObserver = new ResizeObserver(updateDesktopGridHeight);
+    resizeObserver.observe(document.body);
+    window.addEventListener("resize", updateDesktopGridHeight);
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("resize", updateHeaderHeight);
+      window.removeEventListener("resize", updateDesktopGridHeight);
     };
-  }, []);
+  }, [selectedCaseId, phaseNotice]);
 
   const progressLabel = getProgressLabel(activeCase.clues.length, gameState.discoveredClueIds.length);
   const pendingActiveNpc = activeNpc ? pendingNpcIds.includes(activeNpc.id) : false;
   const desktopMainGridStyle =
-    headerHeight > 0 ? { minHeight: `calc(100dvh - ${headerHeight}px)` } : undefined;
+    desktopGridHeight !== null ? { height: `${desktopGridHeight}px` } : undefined;
   const evidenceChainReady = activeCase.accusation.requiredClueIds.every((clueId) =>
     gameState.discoveredClueIds.includes(clueId),
   );
@@ -512,22 +581,28 @@ export default function App() {
   };
 
   const handleSelectCase = (caseId: string) => {
-    if (caseId === selectedCaseId) {
-      return;
-    }
-
     const nextCase = caseLibraryById[caseId];
 
     if (!nextCase) {
       return;
     }
 
-    requestEpochRef.current += 1;
-    previousPhaseRef.current = null;
-    replyUsageRef.current = createUsedReplyIndexMap(nextCase.npcs);
-    resetTransientUi(nextCase.remoteSupport ? "remote" : "fallback");
-    setSelectedCaseId(caseId);
-    setGameState(hydrateGameState(nextCase));
+    const nextPath = getCasePath(caseId);
+
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ caseId }, "", nextPath);
+    }
+
+    if (caseId !== selectedCaseId) {
+      requestEpochRef.current += 1;
+      previousPhaseRef.current = null;
+      replyUsageRef.current = createUsedReplyIndexMap(nextCase.npcs);
+      resetTransientUi(nextCase.remoteSupport ? "remote" : "fallback");
+      setSelectedCaseId(caseId);
+      setGameState(hydrateGameState(nextCase));
+    }
+
+    scrollAppToTop();
   };
 
   const handleSendMessage = async () => {
@@ -741,7 +816,19 @@ export default function App() {
     <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
       <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-4">
-        <header ref={headerRef} className="cyber-panel shrink-0 p-4 sm:p-5">
+        <CaseHero
+          caseDefinition={activeCase}
+          activeNpc={activeNpc}
+          categoryLabel={activeCategoryLabel}
+          discoveredCluesCount={gameState.discoveredClueIds.length}
+          progressLabel={progressLabel}
+          responseMode={responseMode}
+          onBrowseCases={() =>
+            caseSelectorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        />
+
+        <header className="hidden">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-[#B8C2CF]">
@@ -809,14 +896,16 @@ export default function App() {
           </div>
         </header>
 
-        <CaseSelector
-          categories={caseCategories}
-          activeCategoryId={activeCategoryId}
-          selectedCaseId={selectedCaseId}
-          cases={caseLibrary}
-          onCategoryChange={setActiveCategoryId}
-          onSelectCase={handleSelectCase}
-        />
+        <section ref={caseSelectorRef}>
+          <CaseSelector
+            categories={caseCategories}
+            activeCategoryId={activeCategoryId}
+            selectedCaseId={selectedCaseId}
+            cases={caseLibrary}
+            onCategoryChange={setActiveCategoryId}
+            onSelectCase={handleSelectCase}
+          />
+        </section>
 
         {phaseNotice ? (
           <div className="cyber-panel border-pulse shrink-0 px-4 py-3.5 sm:px-5">
@@ -913,6 +1002,7 @@ export default function App() {
         </div>
 
         <div
+          ref={desktopGridRef}
           style={desktopMainGridStyle}
           className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch"
         >
