@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccusationModal } from "./components/AccusationModal";
 import { CaseFilePanel } from "./components/CaseFilePanel";
 import { CaseHero } from "./components/CaseHero";
@@ -397,16 +397,15 @@ function buildGuidance(
 }
 
 export default function App() {
-  const caseSelectorRef = useRef<HTMLElement | null>(null);
-  const desktopGridRef = useRef<HTMLDivElement | null>(null);
   const persistenceReadyRef = useRef(false);
   const requestEpochRef = useRef(0);
   const previousPhaseRef = useRef<string | null>(null);
-  const [desktopGridHeight, setDesktopGridHeight] = useState<number | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState("all");
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+  const initialRouteCaseId = getCaseIdFromPath(window.location.pathname);
   const [selectedCaseId, setSelectedCaseId] = useState(() =>
-    getCaseIdFromPath(window.location.pathname)
-    ?? loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
+    initialRouteCaseId
+      ?? loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
   );
   const initialCase = caseLibraryById[selectedCaseId] ?? caseLibraryById[defaultCaseId];
   const replyUsageRef = useRef<Record<string, number[]>>(createUsedReplyIndexMap(initialCase.npcs));
@@ -428,6 +427,8 @@ export default function App() {
   });
 
   const activeCase = caseLibraryById[selectedCaseId] ?? caseLibraryById[defaultCaseId];
+  const routeCaseId = getCaseIdFromPath(currentPath);
+  const isLibraryPage = routeCaseId === null;
   const activeCategoryLabel =
     caseCategories.find((category) => category.id === activeCase.categoryId)?.label ?? "案件";
   const npcNameById = Object.fromEntries(activeCase.npcs.map((npc) => [npc.id, npc.name]));
@@ -494,30 +495,8 @@ export default function App() {
   }, [activeCase.clues.length, gameState.casePhase, gameState.discoveredClueIds.length]);
 
   useEffect(() => {
-    const currentPath = window.location.pathname;
-    const canonicalPath = getCasePath(selectedCaseId);
-
-    if (currentPath !== canonicalPath) {
-      window.history.replaceState({ caseId: selectedCaseId }, "", canonicalPath);
-    }
-  }, [selectedCaseId]);
-
-  useEffect(() => {
     const handlePopState = () => {
-      const routeCaseId = getCaseIdFromPath(window.location.pathname);
-
-      if (!routeCaseId || routeCaseId === selectedCaseId) {
-        return;
-      }
-
-      const nextCase = caseLibraryById[routeCaseId];
-
-      requestEpochRef.current += 1;
-      previousPhaseRef.current = null;
-      replyUsageRef.current = createUsedReplyIndexMap(nextCase.npcs);
-      resetTransientUi(nextCase.remoteSupport ? "remote" : "fallback");
-      setSelectedCaseId(routeCaseId);
-      setGameState(hydrateGameState(nextCase));
+      setCurrentPath(window.location.pathname);
       scrollAppToTop();
     };
 
@@ -526,37 +505,25 @@ export default function App() {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [selectedCaseId]);
+  }, []);
 
-  useLayoutEffect(() => {
-    const updateDesktopGridHeight = () => {
-      const desktopGridElement = desktopGridRef.current;
+  useEffect(() => {
+    if (!routeCaseId || routeCaseId === selectedCaseId) {
+      return;
+    }
 
-      if (!desktopGridElement) {
-        return;
-      }
+    const nextCase = caseLibraryById[routeCaseId];
 
-      const top = desktopGridElement.getBoundingClientRect().top;
-      const availableHeight = Math.max(window.innerHeight - top, 420);
-      setDesktopGridHeight(availableHeight);
-    };
-
-    updateDesktopGridHeight();
-
-    const resizeObserver = new ResizeObserver(updateDesktopGridHeight);
-    resizeObserver.observe(document.body);
-    window.addEventListener("resize", updateDesktopGridHeight);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", updateDesktopGridHeight);
-    };
-  }, [selectedCaseId, phaseNotice]);
+    requestEpochRef.current += 1;
+    previousPhaseRef.current = null;
+    replyUsageRef.current = createUsedReplyIndexMap(nextCase.npcs);
+    resetTransientUi(nextCase.remoteSupport ? "remote" : "fallback");
+    setSelectedCaseId(routeCaseId);
+    setGameState(hydrateGameState(nextCase));
+  }, [routeCaseId, selectedCaseId]);
 
   const progressLabel = getProgressLabel(activeCase.clues.length, gameState.discoveredClueIds.length);
   const pendingActiveNpc = activeNpc ? pendingNpcIds.includes(activeNpc.id) : false;
-  const desktopMainGridStyle =
-    desktopGridHeight !== null ? { height: `${desktopGridHeight}px` } : undefined;
   const evidenceChainReady = activeCase.accusation.requiredClueIds.every((clueId) =>
     gameState.discoveredClueIds.includes(clueId),
   );
@@ -593,6 +560,8 @@ export default function App() {
       window.history.pushState({ caseId }, "", nextPath);
     }
 
+    setCurrentPath(nextPath);
+
     if (caseId !== selectedCaseId) {
       requestEpochRef.current += 1;
       previousPhaseRef.current = null;
@@ -602,6 +571,15 @@ export default function App() {
       setGameState(hydrateGameState(nextCase));
     }
 
+    scrollAppToTop();
+  };
+
+  const handleBrowseCases = () => {
+    if (window.location.pathname !== "/") {
+      window.history.pushState({}, "", "/");
+    }
+
+    setCurrentPath("/");
     scrollAppToTop();
   };
 
@@ -812,6 +790,75 @@ export default function App() {
     setIsAccusationOpen(true);
   };
 
+  if (isLibraryPage) {
+    return (
+      <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
+        <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-4">
+          <section className="cyber-panel overflow-hidden p-5 sm:p-6">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(139,211,255,0.14),_transparent_26%),linear-gradient(135deg,_rgba(139,211,255,0.06),_transparent_42%)]" />
+            <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-4xl">
+                <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#B8DFFF]">
+                  Case Library
+                </p>
+                <h1 className="mt-3 text-[2.2rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.8rem]">
+                  选择一个剧本进入完整案件页
+                </h1>
+                <p className="mt-3 max-w-3xl text-[0.98rem] leading-7 text-[#D7EAF8]">
+                  这里专门用于挑选剧本。点击卡片后会进入对应剧本的完整页面；如果想换本，再从详情页返回剧本库。
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="terminal-pill rounded-full px-3 py-1.5 text-[0.64rem] uppercase tracking-[0.14em]">
+                    共 {caseLibrary.length} 个剧本
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[0.64rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
+                    覆盖 {caseCategories.length - 1} 种类型
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3 xl:w-[620px]">
+                <div className="cyber-card rounded-[22px] px-4 py-3">
+                  <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">上次剧本</p>
+                  <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">
+                    {activeCase.caseFile.title}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">{activeCategoryLabel}</p>
+                </div>
+                <div className="cyber-card rounded-[22px] px-4 py-3">
+                  <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">当前进度</p>
+                  <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">
+                    {gameState.discoveredClueIds.length}/{activeCase.clues.length}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">{progressLabel}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCase(selectedCaseId)}
+                  className="cyber-card rounded-[22px] px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-white/18"
+                >
+                  <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">继续调查</p>
+                  <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">进入上次剧本</p>
+                  <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">保留你当前的独立存档</p>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <CaseSelector
+            categories={caseCategories}
+            activeCategoryId={activeCategoryId}
+            selectedCaseId={selectedCaseId}
+            cases={caseLibrary}
+            onCategoryChange={setActiveCategoryId}
+            onSelectCase={handleSelectCase}
+          />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
@@ -823,9 +870,7 @@ export default function App() {
           discoveredCluesCount={gameState.discoveredClueIds.length}
           progressLabel={progressLabel}
           responseMode={responseMode}
-          onBrowseCases={() =>
-            caseSelectorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
+          onBrowseCases={handleBrowseCases}
         />
 
         <header className="hidden">
@@ -896,7 +941,7 @@ export default function App() {
           </div>
         </header>
 
-        <section ref={caseSelectorRef}>
+        <section className="hidden">
           <CaseSelector
             categories={caseCategories}
             activeCategoryId={activeCategoryId}
@@ -1001,11 +1046,7 @@ export default function App() {
           </div>
         </div>
 
-        <div
-          ref={desktopGridRef}
-          style={desktopMainGridStyle}
-          className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch"
-        >
+        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
           <div className="h-full min-h-0 overflow-y-auto">
             <NpcSidebar
               npcs={runtimeNpcs}
