@@ -79,24 +79,30 @@ export function CaseHero({
     return (
       <section className="cyber-panel overflow-hidden p-5 sm:p-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,199,122,0.18),_transparent_28%),linear-gradient(120deg,_rgba(255,219,166,0.08),_transparent_36%)]" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-4xl">
-            <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F6D79A]">
-              Inheritance Dossier
-            </p>
-            <h1 className="mt-3 text-[2.1rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.5rem]">
-              {caseDefinition.caseFile.title}
-            </h1>
-            <p className="mt-3 max-w-3xl text-[0.96rem] leading-7 text-[#F3E6CC]">
-              {caseDefinition.selectionSummary}
-            </p>
-            <MetaPills
-              caseDefinition={caseDefinition}
-              categoryLabel={categoryLabel}
-              responseMode={responseMode}
-            />
+        <div className="relative flex flex-col gap-4">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-4xl">
+              <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F6D79A]">
+                Inheritance Dossier
+              </p>
+              <h1 className="mt-3 text-[2rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.35rem]">
+                {caseDefinition.caseFile.title}
+              </h1>
+              <p className="mt-3 max-w-3xl text-[0.96rem] leading-7 text-[#F3E6CC]">
+                {caseDefinition.selectionSummary}
+              </p>
+              <MetaPills
+                caseDefinition={caseDefinition}
+                categoryLabel={categoryLabel}
+                responseMode={responseMode}
+              />
+            </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="flex justify-start xl:justify-end">{commonAction}</div>
+          </div>
+
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
               <div className="rounded-[24px] border border-[#f5c77a33] bg-[rgba(245,199,122,0.08)] p-4">
                 <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#F6D79A]">
                   核心矛盾
@@ -108,6 +114,7 @@ export function CaseHero({
                   先核对书面证据的流转，再看谁有能力控制出入口和受害者行动线。
                 </p>
               </div>
+
               <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
                 <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
                   当前嫌疑圈
@@ -124,11 +131,8 @@ export function CaseHero({
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="w-full max-w-[560px]">
-            <div className="flex justify-end">{commonAction}</div>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
               <StatCard
                 label="当前对象"
                 value={activeNpc?.name ?? "--"}
@@ -148,7 +152,7 @@ export function CaseHero({
               <StatCard
                 label="调查切口"
                 value={caseDefinition.caseFile.brief.investigationDirections[0] ?? "梳理关系链"}
-                detail="这个剧本更适合先抓利益链，再反推作案时序。"
+                detail="先抓利益链，再反推作案时序。"
               />
             </div>
           </div>
