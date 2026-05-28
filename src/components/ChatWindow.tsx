@@ -46,10 +46,10 @@ export function ChatWindow({
   return (
     <PanelFrame
       title="Interrogation Feed"
-      className="chat-panel h-full min-h-0 max-h-[88dvh] flex-col overflow-hidden p-4 sm:p-5"
+      className="chat-panel h-full min-h-0 flex-col overflow-hidden p-4 sm:p-5"
     >
       <div className="flex h-full min-h-0 flex-1 flex-col">
-        <div className="cyber-card mb-4 shrink-0 rounded-[24px] px-4 py-3.5 sm:px-5">
+        <div className="cyber-card mb-3 shrink-0 rounded-[24px] px-4 py-3 sm:px-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
@@ -86,34 +86,34 @@ export function ChatWindow({
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2.5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)]">
-            <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
+          <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)]">
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">Focus</p>
-              <p className="mt-2 text-sm leading-6 text-[#D6DEEA]">
+              <p className="mt-1.5 text-sm leading-6 text-[#D6DEEA]">
                 {activeNpc.investigationFocus}
               </p>
             </div>
 
-            <div className="rounded-[20px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] px-3.5 py-3">
+            <div className="rounded-[18px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] px-3 py-2.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#C9E0EA]">
                 Current Objective
               </p>
-              <p className="mt-2 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
-              <p className="mt-2 text-[0.78rem] leading-5 text-[#C9D8E2]">{nextMilestone}</p>
+              <p className="mt-1.5 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
+              <p className="mt-1.5 text-[0.78rem] leading-5 text-[#C9D8E2]">{nextMilestone}</p>
             </div>
 
-            <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3.5 py-3">
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                 Case Note
               </p>
-              <p className="mt-2 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
+              <p className="mt-1.5 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
             </div>
           </div>
         </div>
 
         <div
           ref={messagesContainerRef}
-          className="chat-feed scroll-secondary min-h-[24rem] max-h-[62dvh] flex-1 overflow-y-auto rounded-[24px] pr-2"
+          className="chat-feed scroll-secondary min-h-[28rem] flex-1 basis-0 overflow-y-auto rounded-[24px] pr-2"
         >
           <div className="space-y-5">
             {messages.map((message) => {

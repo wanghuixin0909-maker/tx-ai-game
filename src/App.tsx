@@ -1046,7 +1046,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
+        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:min-h-[calc(100dvh-17rem)] lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
           <div className="h-full min-h-0 overflow-y-auto">
             <NpcSidebar
               npcs={runtimeNpcs}
