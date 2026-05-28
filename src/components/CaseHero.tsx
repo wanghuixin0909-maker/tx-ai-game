@@ -79,8 +79,8 @@ export function CaseHero({
     return (
       <section className="cyber-panel overflow-hidden p-5 sm:p-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,199,122,0.18),_transparent_28%),linear-gradient(120deg,_rgba(255,219,166,0.08),_transparent_36%)]" />
-        <div className="relative flex flex-col gap-5 xl:grid xl:grid-cols-[minmax(0,1.35fr)_380px]">
-          <div>
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-4xl">
             <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F6D79A]">
               Inheritance Dossier
             </p>
@@ -126,29 +126,31 @@ export function CaseHero({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {commonAction}
-            <StatCard
-              label="当前对象"
-              value={activeNpc?.name ?? "--"}
-              detail={activeNpc?.role ?? caseDefinition.caseFile.district}
-              toneClass="border-[#f5c77a22] bg-[rgba(255,230,185,0.06)]"
-            />
-            <StatCard
-              label="已获线索"
-              value={`${discoveredCluesCount}/${caseDefinition.clues.length}`}
-              detail={progressLabel}
-            />
-            <StatCard
-              label="受害者"
-              value={caseDefinition.caseFile.brief.victim.name}
-              detail={caseDefinition.caseFile.brief.victim.identity}
-            />
-            <StatCard
-              label="调查切口"
-              value={caseDefinition.caseFile.brief.investigationDirections[0] ?? "梳理关系链"}
-              detail="这个剧本更适合先抓利益链，再反推作案时序。"
-            />
+          <div className="w-full max-w-[560px]">
+            <div className="flex justify-end">{commonAction}</div>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <StatCard
+                label="当前对象"
+                value={activeNpc?.name ?? "--"}
+                detail={activeNpc?.role ?? caseDefinition.caseFile.district}
+                toneClass="border-[#f5c77a22] bg-[rgba(255,230,185,0.06)]"
+              />
+              <StatCard
+                label="已获线索"
+                value={`${discoveredCluesCount}/${caseDefinition.clues.length}`}
+                detail={progressLabel}
+              />
+              <StatCard
+                label="受害者"
+                value={caseDefinition.caseFile.brief.victim.name}
+                detail={caseDefinition.caseFile.brief.victim.identity}
+              />
+              <StatCard
+                label="调查切口"
+                value={caseDefinition.caseFile.brief.investigationDirections[0] ?? "梳理关系链"}
+                detail="这个剧本更适合先抓利益链，再反推作案时序。"
+              />
+            </div>
           </div>
         </div>
       </section>
