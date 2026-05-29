@@ -82,10 +82,10 @@ export function CaseHero({
         <div className="relative flex flex-col gap-3.5">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F6D79A]">
+              <p className="text-[0.64rem] font-medium uppercase tracking-[0.2em] text-[#F6D79A]">
                 Inheritance Dossier
               </p>
-              <h1 className="mt-2 text-[1.72rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.02rem]">
+              <h1 className="mt-1.5 text-[1.42rem] font-bold leading-[1.08] tracking-[0.015em] text-slate-50 sm:text-[1.74rem]">
                 {caseDefinition.caseFile.title}
               </h1>
               <p className="mt-2.5 max-w-3xl text-[0.96rem] leading-7 text-[#F3E6CC]">
@@ -168,10 +168,10 @@ export function CaseHero({
         <div className="relative flex flex-col gap-4">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-4xl">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F0B8FF]">
+              <p className="text-[0.64rem] font-medium uppercase tracking-[0.2em] text-[#F0B8FF]">
                 Stage Lockdown
               </p>
-              <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.12rem]">
+              <h1 className="mt-1.5 text-[1.48rem] font-bold leading-[1.08] tracking-[0.015em] text-slate-50 sm:text-[1.82rem]">
                 {caseDefinition.caseFile.title}
               </h1>
               <p className="mt-2.5 text-[0.96rem] leading-7 text-[#F3DFFA]">
@@ -238,10 +238,10 @@ export function CaseHero({
         <div className="relative flex flex-col gap-4">
           <div className="flex flex-col gap-3.5 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-4xl">
-              <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#A8F5D8]">
+              <p className="text-[0.64rem] font-medium uppercase tracking-[0.2em] text-[#A8F5D8]">
                 Rail Crisis Trace
               </p>
-              <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.12rem]">
+              <h1 className="mt-1.5 text-[1.48rem] font-bold leading-[1.08] tracking-[0.015em] text-slate-50 sm:text-[1.82rem]">
                 {caseDefinition.caseFile.title}
               </h1>
               <p className="mt-2.5 text-[0.96rem] leading-7 text-[#D8F5EA]">
@@ -303,10 +303,10 @@ export function CaseHero({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(139,211,255,0.18),_transparent_26%),linear-gradient(135deg,_rgba(139,211,255,0.08),_transparent_42%)]" />
       <div className="relative flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="max-w-4xl">
-          <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#B8DFFF]">
+          <p className="text-[0.64rem] font-medium uppercase tracking-[0.2em] text-[#B8DFFF]">
             Neural Casefeed
           </p>
-          <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.18rem]">
+          <h1 className="mt-1.5 text-[1.48rem] font-bold leading-[1.08] tracking-[0.015em] text-slate-50 sm:text-[1.86rem]">
             {caseDefinition.caseFile.title}
           </h1>
           <p className="mt-2.5 text-[0.96rem] leading-7 text-[#D7EAF8]">
