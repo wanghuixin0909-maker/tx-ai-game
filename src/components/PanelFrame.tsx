@@ -16,13 +16,13 @@ export function PanelFrame({
 }: PanelFrameProps) {
   return (
     <section className={`cyber-panel flex h-full min-h-0 flex-col ${className}`}>
-      <div className="mb-4 flex items-start justify-between gap-4 shrink-0">
+      <div className="mb-3 flex shrink-0 items-start justify-between gap-3">
         <div>
           <p className="panel-heading text-[0.68rem] font-medium uppercase">
             {title}
           </p>
           {subtitle ? (
-            <p className="panel-subtitle mt-2 max-w-[34rem] text-[0.92rem]">
+            <p className="panel-subtitle mt-1.5 max-w-[34rem] text-[0.92rem]">
               {subtitle}
             </p>
           ) : null}

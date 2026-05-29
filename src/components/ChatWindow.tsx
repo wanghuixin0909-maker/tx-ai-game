@@ -46,16 +46,16 @@ export function ChatWindow({
   return (
     <PanelFrame
       title="Interrogation Feed"
-      className="chat-panel h-full min-h-0 flex-col overflow-hidden p-4 sm:p-5"
+      className="chat-panel h-full min-h-0 flex-col overflow-hidden p-3.5 sm:p-4"
     >
       <div className="flex h-full min-h-0 flex-1 flex-col">
-        <div className="cyber-card mb-3 shrink-0 rounded-[24px] px-4 py-3 sm:px-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="cyber-card mb-2.5 shrink-0 rounded-[22px] px-4 py-2.5">
+          <div className="flex flex-wrap items-start justify-between gap-2.5">
             <div>
               <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
                 Current Subject
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
+              <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
                 <div
                   className="h-2.5 w-2.5 animate-pulse rounded-full"
                   style={{ backgroundColor: activeNpc.accentColor }}
@@ -70,7 +70,7 @@ export function ChatWindow({
             </div>
 
             <div
-              className="rounded-[20px] border px-3 py-2"
+              className="rounded-[18px] border px-3 py-1.5"
               style={{
                 borderColor: `${activeNpc.accentColor}40`,
                 background: `linear-gradient(180deg, ${activeNpc.accentColor}16, rgba(255,255,255,0.03))`,
@@ -86,36 +86,36 @@ export function ChatWindow({
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)]">
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
+          <div className="mt-2.5 grid gap-2 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)]">
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">Focus</p>
-              <p className="mt-1.5 text-sm leading-6 text-[#D6DEEA]">
+              <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">
                 {activeNpc.investigationFocus}
               </p>
             </div>
 
-            <div className="rounded-[18px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] px-3 py-2.5">
+            <div className="rounded-[18px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] px-3 py-2">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#C9E0EA]">
                 Current Objective
               </p>
-              <p className="mt-1.5 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
-              <p className="mt-1.5 text-[0.78rem] leading-5 text-[#C9D8E2]">{nextMilestone}</p>
+              <p className="mt-1 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
+              <p className="mt-1 text-[0.78rem] leading-5 text-[#C9D8E2]">{nextMilestone}</p>
             </div>
 
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                 Case Note
               </p>
-              <p className="mt-1.5 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
+              <p className="mt-1 text-sm leading-6 text-[#AEB8C5]">{activeNpc.tagline}</p>
             </div>
           </div>
         </div>
 
         <div
           ref={messagesContainerRef}
-          className="chat-feed scroll-secondary min-h-[28rem] flex-1 basis-0 overflow-y-auto rounded-[24px] pr-2"
+          className="chat-feed scroll-secondary min-h-[22rem] flex-1 basis-0 overflow-y-auto rounded-[22px] pr-2"
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             {messages.map((message) => {
               const isPlayer = message.speakerType === "player";
               const isSystem = message.speakerType === "system";
@@ -126,7 +126,7 @@ export function ChatWindow({
                   className={`flex ${isPlayer ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[88%] rounded-[26px] border px-4 py-3.5 sm:max-w-[78%] ${
+                    className={`max-w-[88%] rounded-[24px] border px-4 py-3 sm:max-w-[78%] ${
                       isPlayer
                         ? "border-white/10 bg-[rgba(167,181,200,0.1)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.14)]"
                         : isSystem
@@ -134,13 +134,13 @@ export function ChatWindow({
                           : "border-white/8 bg-[rgba(136,145,171,0.08)] text-[#E2E8F0] shadow-[0_10px_22px_rgba(9,14,24,0.12)]"
                     }`}
                   >
-                    <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
+                    <div className="mb-2 flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.14em] text-[#B8C2CF]">
                       <span>{isPlayer ? "You" : isSystem ? "System" : activeNpc.name}</span>
                       <span className="text-[#96A3B3]">{message.timestamp}</span>
                     </div>
                     <p className="text-[0.96rem] leading-7">{message.text}</p>
                     {message.unlockClueIds?.length ? (
-                      <div className="mt-3 rounded-2xl border border-white/8 bg-white/[0.06] px-3 py-2.5 text-xs leading-5 text-[#D6DEEA]">
+                      <div className="mt-2.5 rounded-2xl border border-white/8 bg-white/[0.06] px-3 py-2 text-xs leading-5 text-[#D6DEEA]">
                         Clue sync: {message.unlockClueIds.length} new evidence item(s) added to
                         the case file.
                       </div>
@@ -152,7 +152,7 @@ export function ChatWindow({
           </div>
         </div>
 
-        {footer ? <div className="mt-3 shrink-0">{footer}</div> : null}
+        {footer ? <div className="mt-2.5 shrink-0">{footer}</div> : null}
       </div>
     </PanelFrame>
   );

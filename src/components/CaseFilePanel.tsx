@@ -123,7 +123,7 @@ export function CaseFilePanel({
     <PanelFrame
       title="案件档案"
       subtitle="案件信息按摘要、证词、线索分类整理。"
-      className="flex h-full min-h-0 flex-col overflow-hidden p-4 sm:p-5"
+      className="flex h-full min-h-0 flex-col overflow-hidden p-3.5 sm:p-4"
       action={
         <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-[#D7DEE7]">
@@ -152,7 +152,7 @@ export function CaseFilePanel({
       }
     >
       <div className="flex h-full min-h-0 flex-1 flex-col">
-        <div className="mb-3 shrink-0 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="mb-2.5 flex shrink-0 gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {CASE_FILE_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -179,48 +179,48 @@ export function CaseFilePanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
           {activeTab === "summary" ? (
-            <div className="space-y-3">
-            <section className="rounded-[22px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] p-3.5">
+            <div className="space-y-2.5">
+            <section className="rounded-[20px] border border-[#8eb2c155] bg-[rgba(142,178,193,0.08)] p-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#C9E0EA]">
                     当前调查目标
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
+                  <p className="mt-1.5 text-sm leading-6 text-[#E7F4FA]">{currentObjective}</p>
                 </div>
                 <span className="terminal-pill rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.12em]">
                   {activeNpc.name}
                 </span>
               </div>
-              <p className="mt-3 text-[0.8rem] leading-5 text-[#D5E6EE]">{nextMilestone}</p>
+              <p className="mt-2.5 text-[0.8rem] leading-5 text-[#D5E6EE]">{nextMilestone}</p>
             </section>
 
-            <section className="cyber-card rounded-[22px] p-3.5">
+            <section className="cyber-card rounded-[20px] p-3">
               <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                 案件背景
               </p>
-              <p className="mt-2 text-sm leading-6 text-[#D6DEEA]">{caseFile.brief.background}</p>
+              <p className="mt-1.5 text-sm leading-6 text-[#D6DEEA]">{caseFile.brief.background}</p>
             </section>
 
             <div className="grid grid-cols-2 gap-2.5">
-              <section className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-3">
+              <section className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
                 <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                   玩家目标
                 </p>
-                <p className="mt-2 text-sm leading-6 text-[#E2E8F0]">{caseFile.objective}</p>
+                <p className="mt-1.5 text-sm leading-6 text-[#E2E8F0]">{caseFile.objective}</p>
               </section>
-              <section className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-3">
+              <section className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
                 <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
                   当前阶段
                 </p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-[#E2E8F0]">
+                <p className="mt-1.5 text-sm font-semibold leading-6 text-[#E2E8F0]">
                   {caseFile.phase}
                 </p>
-                <p className="mt-2 text-[0.78rem] leading-5 text-[#AEB8C5]">{progressLabel}</p>
+                <p className="mt-1.5 text-[0.78rem] leading-5 text-[#AEB8C5]">{progressLabel}</p>
               </section>
             </div>
 
-            <section className="cyber-card rounded-[22px] p-3.5">
+            <section className="cyber-card rounded-[20px] p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#AEB8C5]">
@@ -232,11 +232,11 @@ export function CaseFilePanel({
                   {caseFile.brief.investigationDirections.length} items
                 </span>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-2.5 space-y-2">
                 {caseFile.brief.investigationDirections.map((direction, index) => (
                   <div
                     key={direction}
-                    className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-sm leading-6 text-[#D6DEEA]"
+                    className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2 text-sm leading-6 text-[#D6DEEA]"
                   >
                     <span className="mr-2 text-[#E2E8F0]">{index + 1}.</span>
                     {direction}
@@ -248,14 +248,14 @@ export function CaseFilePanel({
           ) : null}
 
           {activeTab === "testimony" ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
             <div className="grid grid-cols-3 gap-2">
               <StatCard label="矛盾证词" value={testimonyCounts.contradiction} />
               <StatCard label="特殊发言" value={testimonyCounts.special} />
               <StatCard label="时间线冲突" value={testimonyCounts.timeline} />
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {testimonyFeed.length ? (
                 testimonyFeed.map((testimony) => {
                   const kind = getTestimonyKind(testimony);
@@ -264,7 +264,7 @@ export function CaseFilePanel({
                   return (
                     <article
                       key={testimony.messageId}
-                      className="rounded-[20px] border border-white/8 bg-white/[0.05] p-3"
+                      className="rounded-[18px] border border-white/8 bg-white/[0.05] p-2.5"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -281,11 +281,11 @@ export function CaseFilePanel({
                           {testimony.timestamp}
                         </span>
                       </div>
-                      <p className="mt-2.5 text-[0.92rem] leading-6 text-[#E2E8F0]">
+                      <p className="mt-2 text-[0.92rem] leading-6 text-[#E2E8F0]">
                         {testimony.text}
                       </p>
                       {testimony.linkedClueIds.length ? (
-                        <div className="mt-2.5 flex flex-wrap gap-2">
+                        <div className="mt-2 flex flex-wrap gap-2">
                           {testimony.linkedClueIds.map((clueId) => (
                             <span
                               key={clueId}
@@ -307,7 +307,7 @@ export function CaseFilePanel({
           ) : null}
 
           {activeTab === "clues" ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
             <div className="grid grid-cols-3 gap-2">
               <StatCard label="已发现线索" value={discoveredClues.length} />
               <StatCard label="证据" value={evidenceClues.length} />

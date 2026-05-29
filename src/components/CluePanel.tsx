@@ -1,5 +1,4 @@
 import type { Clue, Npc } from "../types/game";
-import { PanelFrame } from "./PanelFrame";
 import { shouldShowNewBadge } from "../hooks/useClueUnlockAnimation";
 
 interface CluePanelProps {
@@ -16,17 +15,17 @@ export function CluePanel({
   clueStates = {},
 }: CluePanelProps) {
   return (
-    <PanelFrame
-      title="Case Fragments"
-      subtitle="右侧面板持续同步解锁的证据，并高亮当前审讯对象关联的线索。"
-      className="h-full min-h-[24rem] p-5 sm:p-6"
-      action={
-        <div className="terminal-pill rounded-full px-3.5 py-2 text-[0.65rem] uppercase tracking-[0.22em] text-[#D7DEE7]">
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[0.68rem] uppercase tracking-[0.16em] text-[#AEB8C5]">
+          Case Fragments
+        </p>
+        <div className="terminal-pill rounded-full px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-[#D7DEE7]">
           {discoveredClueIds.size}/{clues.length} clues
         </div>
-      }
-    >
-      <div className="space-y-3.5">
+      </div>
+
+      <div className="space-y-2.5">
         {clues.map((clue) => {
           const unlocked = discoveredClueIds.has(clue.id);
           const relatedToActiveNpc = clue.sourceNpcId === activeNpc.id;
@@ -37,7 +36,7 @@ export function CluePanel({
           return (
             <article
               key={clue.id}
-              className={`cyber-card rounded-[26px] p-5 transition duration-300 ${
+              className={`cyber-card rounded-[22px] p-3.5 transition duration-300 ${
                 unlocked
                   ? relatedToActiveNpc
                     ? "border-white/10 bg-[rgba(142,178,193,0.08)] shadow-[0_10px_22px_rgba(7,12,20,0.14)]"
@@ -48,7 +47,7 @@ export function CluePanel({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[0.96rem] font-semibold text-slate-50">{clue.title}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.24em] text-[#AEB8C5]">
+                  <p className="mt-1.5 text-xs uppercase tracking-[0.24em] text-[#AEB8C5]">
                     {clue.category}
                   </p>
                 </div>
@@ -69,7 +68,7 @@ export function CluePanel({
                 )}
               </div>
               <p
-                className={`mt-3 text-[0.92rem] leading-7 ${
+                className={`mt-2.5 text-[0.92rem] leading-7 ${
                   unlocked ? "text-[#D7DEE7]" : "text-[#AEB8C5]"
                 }`}
               >
@@ -77,7 +76,7 @@ export function CluePanel({
                   ? clue.summary
                   : "线索仍被遮罩。继续与相关 NPC 交谈以恢复完整数据片段。"}
               </p>
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="mt-3 flex items-center justify-between gap-3">
                 <p className="text-[0.7rem] uppercase tracking-[0.22em] text-[#AEB8C5]">
                   Source // {clue.sourceNpcId.toUpperCase()}
                 </p>
@@ -91,6 +90,6 @@ export function CluePanel({
           );
         })}
       </div>
-    </PanelFrame>
+    </div>
   );
 }

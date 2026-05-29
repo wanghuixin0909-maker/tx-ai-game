@@ -400,9 +400,12 @@ export default function App() {
   const persistenceReadyRef = useRef(false);
   const requestEpochRef = useRef(0);
   const previousPhaseRef = useRef<string | null>(null);
+  const initialPathname = window.location.pathname;
+  const initialRouteCaseId = getCaseIdFromPath(initialPathname);
   const [activeCategoryId, setActiveCategoryId] = useState("all");
-  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
-  const initialRouteCaseId = getCaseIdFromPath(window.location.pathname);
+  const [currentPath, setCurrentPath] = useState(() =>
+    initialRouteCaseId ? "/" : initialPathname,
+  );
   const [selectedCaseId, setSelectedCaseId] = useState(() =>
     initialRouteCaseId
       ?? loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
@@ -470,6 +473,14 @@ export default function App() {
   useEffect(() => {
     persistenceReadyRef.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!initialRouteCaseId || window.location.pathname === "/") {
+      return;
+    }
+
+    window.history.replaceState({}, "", "/");
+  }, [initialRouteCaseId]);
 
   useEffect(() => {
     if (previousPhaseRef.current === null) {
@@ -792,9 +803,9 @@ export default function App() {
 
   if (isLibraryPage) {
     return (
-      <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+      <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-3 text-slate-50 sm:px-4 sm:py-4 lg:px-6">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-        <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-4">
+        <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-3">
           <section className="cyber-panel overflow-hidden p-5 sm:p-6">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(139,211,255,0.14),_transparent_26%),linear-gradient(135deg,_rgba(139,211,255,0.06),_transparent_42%)]" />
             <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -802,7 +813,7 @@ export default function App() {
                 <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#B8DFFF]">
                   Case Library
                 </p>
-                <h1 className="mt-3 text-[2.2rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.8rem]">
+                <h1 className="mt-2.5 text-[1.92rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.32rem]">
                   选择一个剧本进入完整案件页
                 </h1>
                 <p className="mt-3 max-w-3xl text-[0.98rem] leading-7 text-[#D7EAF8]">
@@ -860,9 +871,9 @@ export default function App() {
   }
 
   return (
-    <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-4 text-slate-50 sm:px-5 sm:py-5 lg:px-8">
+      <main className="relative flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto px-3 py-3 text-slate-50 sm:px-4 sm:py-4 lg:px-6">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(167,181,200,0.07),_transparent_30%),radial-gradient(circle_at_right,_rgba(132,145,171,0.06),_transparent_24%),linear-gradient(180deg,_rgba(36,48,65,0.5),_rgba(32,40,58,0.34),_rgba(26,34,51,0.12))]" />
-      <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-4">
+      <div className="relative mx-auto flex w-full max-w-[1700px] flex-1 flex-col gap-3">
         <CaseHero
           caseDefinition={activeCase}
           activeNpc={activeNpc}
@@ -879,7 +890,7 @@ export default function App() {
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-[#B8C2CF]">
                 AI 侦查终端
               </p>
-              <h1 className="mt-2.5 text-[2.15rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.55rem]">
+              <h1 className="mt-2 text-[1.84rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.16rem]">
                 {activeCase.caseFile.title}
               </h1>
               <p className="mt-3 hidden max-w-3xl text-[0.92rem] leading-6 text-[#D6DEEA] sm:block sm:text-[0.98rem]">
@@ -991,7 +1002,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-3.5 lg:hidden">
+        <div className="grid min-h-0 flex-1 gap-3 lg:hidden">
           <div className={gameState.mobilePanel === "npcs" ? "block min-h-0 flex-1" : "hidden"}>
             <NpcSidebar
               npcs={runtimeNpcs}
@@ -1046,7 +1057,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 gap-3.5 lg:grid lg:min-h-[calc(100dvh-17rem)] lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-stretch">
+        <div className="hidden min-h-0 flex-1 gap-3 lg:grid lg:min-h-[calc(100dvh-15.5rem)] lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:items-stretch">
           <div className="h-full min-h-0 overflow-y-auto">
             <NpcSidebar
               npcs={runtimeNpcs}

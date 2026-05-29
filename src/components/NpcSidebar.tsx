@@ -26,10 +26,10 @@ export function NpcSidebar({
     <PanelFrame
       title="对象网络"
       subtitle="在嫌疑人、目击者与线人之间切换，先确认他们各自掌握哪一段案情。"
-      className="npc-panel h-full min-h-0 p-5 sm:p-6"
+      className="npc-panel h-full min-h-0 p-4 sm:p-5"
     >
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-secondary">
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {npcs.map((npc) => {
             const latestMessage = conversations[npc.id]?.at(-1);
             const isActive = npc.id === selectedNpcId;
@@ -39,7 +39,7 @@ export function NpcSidebar({
                 key={npc.id}
                 type="button"
                 onClick={() => onSelect(npc.id)}
-                className={`group relative w-full overflow-hidden rounded-[26px] border px-4 py-4 text-left transition-all duration-300 ${
+                className={`group relative w-full overflow-hidden rounded-[24px] border px-3.5 py-3.5 text-left transition-all duration-300 ${
                   isActive
                     ? "border-white/15 bg-[rgba(142,178,193,0.08)] shadow-[0_10px_24px_rgba(7,12,20,0.16)]"
                     : "border-white/8 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]"
@@ -57,7 +57,7 @@ export function NpcSidebar({
                 }}
               />
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2.5">
                 {/* 头像 */}
                 <div className="relative shrink-0">
                   <NpcAvatar npc={npc} size="md" showRing={isActive} showGlow={isActive} />
@@ -70,7 +70,7 @@ export function NpcSidebar({
                       <h3 className="truncate text-[0.98rem] font-semibold text-slate-50">
                         {npc.name}
                       </h3>
-                      <p className="mt-1 text-xs tracking-[0.08em] text-[#AEB8C5]">
+                      <p className="mt-0.5 text-xs tracking-[0.08em] text-[#AEB8C5]">
                         {npc.role}
                       </p>
                     </div>
@@ -88,12 +88,12 @@ export function NpcSidebar({
                   </div>
 
                   {/* 签名语 */}
-                  <p className="mt-2.5 line-clamp-2 text-[0.8rem] leading-5 text-[#D7DEE7]">
+                  <p className="mt-2 line-clamp-2 text-[0.8rem] leading-5 text-[#D7DEE7]">
                     {npc.tagline}
                   </p>
 
                   {/* 信任度 */}
-                  <div className="mt-3 flex items-center gap-3">
+                  <div className="mt-2.5 flex items-center gap-2.5">
                     <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
                       <div
                         className="h-full rounded-full transition-all duration-500"
@@ -109,7 +109,7 @@ export function NpcSidebar({
                   </div>
 
                   {/* 最新消息 */}
-                  <p className="mt-2.5 truncate text-[0.68rem] uppercase tracking-[0.16em] text-[#96A3B3]">
+                  <p className="mt-2 truncate text-[0.68rem] uppercase tracking-[0.16em] text-[#96A3B3]">
                     {latestMessage?.speakerType === "player"
                       ? "你："
                       : latestMessage?.speakerType === "npc"

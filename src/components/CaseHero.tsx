@@ -48,10 +48,10 @@ function StatCard({
   toneClass?: string;
 }) {
   return (
-    <div className={`rounded-[22px] border px-4 py-3 ${toneClass}`}>
+    <div className={`rounded-[20px] border px-3.5 py-2.5 ${toneClass}`}>
       <p className="text-[0.64rem] uppercase tracking-[0.14em] text-[#AEB8C5]">{label}</p>
-      <p className="mt-2 text-lg font-semibold text-[#E2E8F0]">{value}</p>
-      <p className="mt-1 text-sm leading-6 text-[#D6DEEA]">{detail}</p>
+      <p className="mt-1.5 text-lg font-semibold text-[#E2E8F0]">{value}</p>
+      <p className="mt-0.5 text-sm leading-6 text-[#D6DEEA]">{detail}</p>
     </div>
   );
 }
@@ -69,7 +69,7 @@ export function CaseHero({
     <button
       type="button"
       onClick={onBrowseCases}
-      className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-[#E2E8F0] transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.08]"
+      className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-1.5 text-sm font-medium text-[#E2E8F0] transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.08]"
     >
       返回剧本库
     </button>
@@ -77,18 +77,18 @@ export function CaseHero({
 
   if (caseDefinition.categoryId === "social-mystery") {
     return (
-      <section className="cyber-panel overflow-hidden p-5 sm:p-6">
+      <section className="cyber-panel overflow-hidden p-4 sm:p-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,199,122,0.18),_transparent_28%),linear-gradient(120deg,_rgba(255,219,166,0.08),_transparent_36%)]" />
-        <div className="relative flex flex-col gap-4">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="relative flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F6D79A]">
                 Inheritance Dossier
               </p>
-              <h1 className="mt-3 text-[2rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.35rem]">
+              <h1 className="mt-2 text-[1.72rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.02rem]">
                 {caseDefinition.caseFile.title}
               </h1>
-              <p className="mt-3 max-w-3xl text-[0.96rem] leading-7 text-[#F3E6CC]">
+              <p className="mt-2.5 max-w-3xl text-[0.96rem] leading-7 text-[#F3E6CC]">
                 {caseDefinition.selectionSummary}
               </p>
               <MetaPills
@@ -101,9 +101,9 @@ export function CaseHero({
             <div className="flex justify-start xl:justify-end">{commonAction}</div>
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
-              <div className="rounded-[24px] border border-[#f5c77a33] bg-[rgba(245,199,122,0.08)] p-4">
+          <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <div className="grid gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
+              <div className="rounded-[22px] border border-[#f5c77a33] bg-[rgba(245,199,122,0.08)] p-3.5">
                 <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#F6D79A]">
                   核心矛盾
                 </p>
@@ -115,11 +115,11 @@ export function CaseHero({
                 </p>
               </div>
 
-              <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+              <div className="rounded-[22px] border border-white/8 bg-white/[0.04] p-3.5">
                 <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#AEB8C5]">
                   当前嫌疑圈
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-2.5 flex flex-wrap gap-2">
                   {caseDefinition.caseFile.brief.currentSuspects.map((suspect) => (
                     <span
                       key={suspect}
@@ -132,7 +132,7 @@ export function CaseHero({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+            <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-2">
               <StatCard
                 label="当前对象"
                 value={activeNpc?.name ?? "--"}
@@ -163,18 +163,18 @@ export function CaseHero({
 
   if (caseDefinition.categoryId === "locked-room") {
     return (
-      <section className="cyber-panel overflow-hidden p-5 sm:p-6">
+      <section className="cyber-panel overflow-hidden p-4 sm:p-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(232,162,255,0.18),_transparent_30%),linear-gradient(135deg,_rgba(244,216,255,0.08),_transparent_42%)]" />
-        <div className="relative flex flex-col gap-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="relative flex flex-col gap-4">
+          <div className="flex flex-col gap-3.5 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#F0B8FF]">
                 Stage Lockdown
               </p>
-              <h1 className="mt-3 text-[2.1rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.5rem]">
+              <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.12rem]">
                 {caseDefinition.caseFile.title}
               </h1>
-              <p className="mt-3 text-[0.96rem] leading-7 text-[#F3DFFA]">
+              <p className="mt-2.5 text-[0.96rem] leading-7 text-[#F3DFFA]">
                 {caseDefinition.selectionSummary}
               </p>
               <MetaPills
@@ -186,10 +186,10 @@ export function CaseHero({
             {commonAction}
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-            <div className="rounded-[26px] border border-[#e8a2ff33] bg-[rgba(232,162,255,0.08)] p-4">
+          <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="rounded-[24px] border border-[#e8a2ff33] bg-[rgba(232,162,255,0.08)] p-3.5">
               <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#F0B8FF]">密室条件</p>
-              <div className="mt-3 grid gap-3 md:grid-cols-3">
+              <div className="mt-2.5 grid gap-2.5 md:grid-cols-3">
                 <StatCard
                   label="舞台位置"
                   value={caseDefinition.caseFile.district}
@@ -211,13 +211,13 @@ export function CaseHero({
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-white/8 bg-white/[0.04] p-4">
+            <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-3.5">
               <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#AEB8C5]">排查顺序</p>
-              <div className="mt-3 space-y-2.5">
+              <div className="mt-2.5 space-y-2">
                 {caseDefinition.caseFile.brief.investigationDirections.map((direction, index) => (
                   <div
                     key={direction}
-                    className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3.5 py-2.5 text-sm leading-6 text-[#E2E8F0]"
+                    className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2 text-sm leading-6 text-[#E2E8F0]"
                   >
                     <span className="mr-2 text-[#F0B8FF]">{index + 1}.</span>
                     {direction}
@@ -233,18 +233,18 @@ export function CaseHero({
 
   if (caseDefinition.categoryId === "closed-space") {
     return (
-      <section className="cyber-panel overflow-hidden p-5 sm:p-6">
+      <section className="cyber-panel overflow-hidden p-4 sm:p-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(143,240,200,0.18),_transparent_28%),linear-gradient(135deg,_rgba(143,240,200,0.08),_transparent_40%)]" />
-        <div className="relative flex flex-col gap-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="relative flex flex-col gap-4">
+          <div className="flex flex-col gap-3.5 xl:flex-row xl:items-start xl:justify-between">
             <div className="max-w-4xl">
               <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#A8F5D8]">
                 Rail Crisis Trace
               </p>
-              <h1 className="mt-3 text-[2.1rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.5rem]">
+              <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.12rem]">
                 {caseDefinition.caseFile.title}
               </h1>
-              <p className="mt-3 text-[0.96rem] leading-7 text-[#D8F5EA]">
+              <p className="mt-2.5 text-[0.96rem] leading-7 text-[#D8F5EA]">
                 {caseDefinition.selectionSummary}
               </p>
               <MetaPills
@@ -256,7 +256,7 @@ export function CaseHero({
             {commonAction}
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-4">
+          <div className="grid gap-2.5 lg:grid-cols-4">
             <StatCard
               label="事发区段"
               value={caseDefinition.caseFile.district}
@@ -280,13 +280,13 @@ export function CaseHero({
             />
           </div>
 
-          <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+          <div className="rounded-[22px] border border-white/8 bg-white/[0.04] p-3.5">
             <p className="text-[0.66rem] uppercase tracking-[0.18em] text-[#A8F5D8]">封闭空间节奏</p>
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
+            <div className="mt-2.5 grid gap-2 md:grid-cols-3">
               {caseDefinition.caseFile.brief.investigationDirections.map((direction) => (
                 <div
                   key={direction}
-                  className="rounded-[18px] border border-white/8 bg-black/10 px-3.5 py-3 text-sm leading-6 text-[#E2E8F0]"
+                  className="rounded-[18px] border border-white/8 bg-black/10 px-3 py-2.5 text-sm leading-6 text-[#E2E8F0]"
                 >
                   {direction}
                 </div>
@@ -299,17 +299,17 @@ export function CaseHero({
   }
 
   return (
-    <section className="cyber-panel overflow-hidden p-5 sm:p-6">
+    <section className="cyber-panel overflow-hidden p-4 sm:p-5">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(139,211,255,0.18),_transparent_26%),linear-gradient(135deg,_rgba(139,211,255,0.08),_transparent_42%)]" />
-      <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+      <div className="relative flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="max-w-4xl">
           <p className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-[#B8DFFF]">
             Neural Casefeed
           </p>
-          <h1 className="mt-3 text-[2.1rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.55rem]">
+          <h1 className="mt-2 text-[1.8rem] font-bold tracking-[0.02em] text-slate-50 sm:text-[2.18rem]">
             {caseDefinition.caseFile.title}
           </h1>
-          <p className="mt-3 text-[0.96rem] leading-7 text-[#D7EAF8]">
+          <p className="mt-2.5 text-[0.96rem] leading-7 text-[#D7EAF8]">
             {caseDefinition.selectionSummary}
           </p>
           <MetaPills
@@ -317,7 +317,7 @@ export function CaseHero({
             categoryLabel={categoryLabel}
             responseMode={responseMode}
           />
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {caseDefinition.tags.map((tag) => (
               <span
                 key={tag}
@@ -329,9 +329,9 @@ export function CaseHero({
           </div>
         </div>
 
-        <div className="flex w-full max-w-[720px] flex-col gap-3">
+        <div className="flex w-full max-w-[720px] flex-col gap-2.5">
           <div className="flex justify-end">{commonAction}</div>
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-2.5 md:grid-cols-4">
             <StatCard
               label="当前对象"
               value={activeNpc?.name ?? "--"}

@@ -102,7 +102,7 @@ textarea::placeholder {
 .cyber-panel {
   position: relative;
   overflow: hidden;
-  border-radius: 1.9rem;
+  border-radius: 1.7rem;
   border: 1px solid var(--border-soft);
   background:
     linear-gradient(180deg, rgba(43, 56, 77, 0.95), rgba(33, 43, 61, 0.93)),
@@ -115,7 +115,7 @@ textarea::placeholder {
 }
 
 .cyber-panel.npc-panel {
-  min-height: 24rem;
+  min-height: 21rem;
   overflow: visible;
 }
 
