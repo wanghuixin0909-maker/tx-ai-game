@@ -64,7 +64,7 @@ const defaultCase = createCase({
   estimatedMinutes: 35,
   selectionSummary: "赛博塔区谋杀案，适合想体验完整 AI 审问感和多线证据链的玩家。",
   tags: ["赛博", "企业阴谋", "AI 审问"],
-  remoteSupport: true,
+  remoteSupport: false,
   caseFile: defaultCaseFile,
   truth: defaultCaseTruth as CaseTruth,
   accusation: {

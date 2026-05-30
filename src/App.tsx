@@ -65,6 +65,30 @@ function getCaseIdFromPath(pathname: string) {
   return caseLibraryById[caseId] ? caseId : null;
 }
 
+function getCurrentBrowserPath() {
+  if (typeof window === "undefined") {
+    return "/";
+  }
+
+  const normalizedHash = window.location.hash.replace(/^#/, "").trim();
+  if (normalizedHash) {
+    return normalizedHash.startsWith("/") ? normalizedHash : `/${normalizedHash}`;
+  }
+
+  return window.location.pathname;
+}
+
+function navigateToBrowserPath(nextPath: string, mode: "push" | "replace" = "push") {
+  const target = nextPath === "/" ? "/" : `/#${nextPath}`;
+
+  if (mode === "replace") {
+    window.history.replaceState({}, "", target);
+    return;
+  }
+
+  window.history.pushState({}, "", target);
+}
+
 function scrollAppToTop() {
   const main = document.querySelector("main");
 
@@ -400,12 +424,10 @@ export default function App() {
   const persistenceReadyRef = useRef(false);
   const requestEpochRef = useRef(0);
   const previousPhaseRef = useRef<string | null>(null);
-  const initialPathname = window.location.pathname;
+  const initialPathname = getCurrentBrowserPath();
   const initialRouteCaseId = getCaseIdFromPath(initialPathname);
   const [activeCategoryId, setActiveCategoryId] = useState("all");
-  const [currentPath, setCurrentPath] = useState(() =>
-    initialRouteCaseId ? "/" : initialPathname,
-  );
+  const [currentPath, setCurrentPath] = useState(() => initialPathname);
   const [selectedCaseId, setSelectedCaseId] = useState(() =>
     initialRouteCaseId
       ?? loadSelectedCaseId(defaultCaseId, caseLibrary.map((caseDefinition) => caseDefinition.id)),
@@ -475,14 +497,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!initialRouteCaseId || window.location.pathname === "/") {
-      return;
-    }
-
-    window.history.replaceState({}, "", "/");
-  }, [initialRouteCaseId]);
-
-  useEffect(() => {
     if (previousPhaseRef.current === null) {
       previousPhaseRef.current = gameState.casePhase;
       return;
@@ -506,15 +520,17 @@ export default function App() {
   }, [activeCase.clues.length, gameState.casePhase, gameState.discoveredClueIds.length]);
 
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+    const syncCurrentPath = () => {
+      setCurrentPath(getCurrentBrowserPath());
       scrollAppToTop();
     };
 
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", syncCurrentPath);
+    window.addEventListener("hashchange", syncCurrentPath);
 
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("popstate", syncCurrentPath);
+      window.removeEventListener("hashchange", syncCurrentPath);
     };
   }, []);
 
@@ -567,8 +583,8 @@ export default function App() {
 
     const nextPath = getCasePath(caseId);
 
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState({ caseId }, "", nextPath);
+    if (getCurrentBrowserPath() !== nextPath) {
+      navigateToBrowserPath(nextPath);
     }
 
     setCurrentPath(nextPath);
@@ -586,8 +602,8 @@ export default function App() {
   };
 
   const handleBrowseCases = () => {
-    if (window.location.pathname !== "/") {
-      window.history.pushState({}, "", "/");
+    if (getCurrentBrowserPath() !== "/") {
+      navigateToBrowserPath("/");
     }
 
     setCurrentPath("/");

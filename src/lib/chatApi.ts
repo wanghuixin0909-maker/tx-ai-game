@@ -1,7 +1,37 @@
-const DEFAULT_LOCAL_API_BASE_URL = "http://127.0.0.1:8000";
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const CHAT_API_URL = `${(configuredApiBaseUrl || DEFAULT_LOCAL_API_BASE_URL).replace(/\/+$/, "")}/chat`;
 const CHAT_REQUEST_TIMEOUT_MS = 60_000;
+
+function isPrivateIpv4Host(hostname: string) {
+  return /^(10|127)\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)
+    || /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname)
+    || /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname);
+}
+
+function resolveDefaultApiBaseUrl() {
+  if (typeof window === "undefined") {
+    return "http://127.0.0.1:8000";
+  }
+
+  const { hostname, protocol } = window.location;
+  const normalizedHostname = hostname.trim().toLowerCase();
+  const isLoopbackHost =
+    normalizedHostname === "localhost"
+    || normalizedHostname === "127.0.0.1"
+    || normalizedHostname === "::1"
+    || normalizedHostname === "[::1]";
+
+  if (isLoopbackHost || isPrivateIpv4Host(normalizedHostname)) {
+    return `${protocol}//${hostname}:8000`;
+  }
+
+  // Public deployments should use a same-origin reverse proxy unless an
+  // explicit backend domain is provided via VITE_API_BASE_URL.
+  return "/api";
+}
+
+const defaultApiBaseUrl = resolveDefaultApiBaseUrl();
+const activeApiBaseUrl = configuredApiBaseUrl || defaultApiBaseUrl;
+const CHAT_API_URL = `${activeApiBaseUrl.replace(/\/+$/, "")}/chat`;
 
 interface ChatApiRequest {
   npcId: string;
@@ -25,6 +55,18 @@ export class ChatApiError extends Error {
     this.name = "ChatApiError";
     this.status = status;
   }
+}
+
+function buildConnectionErrorMessage() {
+  if (configuredApiBaseUrl) {
+    return "无法连接生产环境 API，请确认 VITE_API_BASE_URL 指向可公开访问的后端地址。";
+  }
+
+  if (defaultApiBaseUrl === "/api") {
+    return "无法连接线上 API，请确认当前站点已配置 /api 反向代理，或在部署时设置 VITE_API_BASE_URL。";
+  }
+
+  return `无法连接后端服务，请确认 FastAPI 已启动并监听 ${defaultApiBaseUrl}。`;
 }
 
 export async function fetchNpcReply({
@@ -52,11 +94,7 @@ export async function fetchNpcReply({
       throw new ChatApiError("NPC 响应超时，请稍后重试。", 504);
     }
 
-    throw new ChatApiError(
-      configuredApiBaseUrl
-        ? "无法连接后端服务，请确认生产环境 API 地址可访问。"
-        : "无法连接后端服务，请确认 FastAPI 已启动并监听 http://127.0.0.1:8000。",
-    );
+    throw new ChatApiError(buildConnectionErrorMessage());
   } finally {
     window.clearTimeout(timeoutId);
   }

@@ -1,11 +1,26 @@
-# Cyber Case Deployment Guide
+# Cyber Case
 
-This project is ready for browser-based deployment with:
+This project is now prepared for a Tencent Cloud same-domain deployment:
 
-- frontend on Vercel
-- backend on Render
-- Tencent Hunyuan API in the FastAPI backend
-- SQLite-based NPC memory
+- frontend and backend can run inside the same Tencent Cloud server stack
+- public browsers use the same domain for both the page and the API
+- frontend calls `/api`, and Nginx forwards `/api` to FastAPI
+- `APP_MODE=demo` can keep the site online without consuming paid AI credits
+
+## Recommended Deployment
+
+Use the Tencent Cloud deployment guide:
+
+- [DEPLOY_TENCENT.md](C:/Users/wanghuixin/Documents/New project 2/DEPLOY_TENCENT.md)
+
+Tencent-specific deployment files added for this repo:
+
+- `docker-compose.tencent.yml`
+- `docker-compose.tencent.https.yml`
+- `nginx/nginx.tencent.http.conf`
+- `nginx/nginx.tencent.https.conf`
+- `backend/.env.tencent.example`
+- `deploy.tencent.sh`
 
 ## Local Development
 
@@ -36,128 +51,20 @@ Local defaults:
 
 - frontend: `http://127.0.0.1:5173`
 - backend: `http://127.0.0.1:8000`
-- frontend API source: `VITE_API_BASE_URL`, defaulting to `http://127.0.0.1:8000`
+- frontend API source: local private-network hosts use `:8000`, public deployments use same-origin `/api`
 
-## Deployment Files
+## AI Reply Modes
 
-- `vercel.json`: SPA refresh fallback for Vercel
-- `render.yaml`: Render web service blueprint
-- `.env.example`: shared frontend/backend environment template
-- `backend/requirements.txt`: Python dependencies for Render
+Backend mode is controlled by `APP_MODE`:
 
-## Production Environment Variables
+- `APP_MODE=demo`
+  - no online model call
+  - no Hunyuan credit usage
+  - suitable for demos and contest submission
+- `APP_MODE=development`
+  - enables online AI replies
+  - requires `HUNYUAN_API_KEY`
 
-Set these in Vercel:
+## Legacy Files
 
-```dotenv
-VITE_API_BASE_URL=https://your-render-service.onrender.com
-```
-
-Set these in Render:
-
-```dotenv
-HUNYUAN_API_KEY=your_hunyuan_api_key
-FRONTEND_URL=https://your-project.vercel.app
-ALLOWED_ORIGINS=https://your-project.vercel.app
-SQLITE_DB_PATH=/opt/render/project/src/backend/data/npc_memory.sqlite3
-LLM_TIMEOUT_SECONDS=45
-NPC_MEMORY_TURNS=12
-```
-
-If you attach a Render persistent disk, point `SQLITE_DB_PATH` at that mount path instead, for example:
-
-```dotenv
-SQLITE_DB_PATH=/var/data/npc_memory.sqlite3
-```
-
-## GitHub Upload Steps
-
-1. Initialize git if needed:
-
-```powershell
-git init
-git branch -M main
-git add .
-git commit -m "Prepare Vercel and Render deployment"
-```
-
-2. Create an empty GitHub repository.
-3. Link the remote and push:
-
-```powershell
-git remote add origin https://github.com/<your-account>/<your-repo>.git
-git push -u origin main
-```
-
-## Vercel Deployment Steps
-
-1. Open Vercel and import the GitHub repository.
-2. Let Vercel detect the project as Vite.
-3. Confirm:
-   - build command: `npm run build`
-   - output directory: `dist`
-4. Add environment variable:
-   - `VITE_API_BASE_URL=https://your-render-service.onrender.com`
-5. Deploy.
-6. After deployment, Vercel will generate a public `https://<project>.vercel.app` link.
-
-`vercel.json` already handles SPA refresh routing, so deep-link refreshes will return `index.html` instead of a 404.
-
-## Render Deployment Steps
-
-1. Open Render and create a new Web Service from the same GitHub repository.
-2. Choose `render.yaml` during setup, or configure manually with the same values:
-   - root directory: `backend`
-   - build command: `pip install -r requirements.txt`
-   - start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-3. Add environment variables:
-   - `HUNYUAN_API_KEY`
-   - `FRONTEND_URL=https://your-project.vercel.app`
-   - `ALLOWED_ORIGINS=https://your-project.vercel.app`
-   - `SQLITE_DB_PATH=/opt/render/project/src/backend/data/npc_memory.sqlite3`
-4. Deploy.
-5. After deployment, Render will generate a public `https://<service>.onrender.com` API link.
-
-## Recommended Deployment Order
-
-1. Deploy Render first and copy the generated `onrender.com` URL.
-2. Put that URL into Vercel as `VITE_API_BASE_URL`.
-3. Deploy Vercel and copy the generated `vercel.app` URL.
-4. Put that Vercel URL into Render as `FRONTEND_URL` and `ALLOWED_ORIGINS`.
-5. Trigger one more Render deploy so CORS uses the final frontend domain.
-
-## Common Issues
-
-### Frontend shows network error
-
-- Check whether `VITE_API_BASE_URL` points to the correct Render URL.
-- Make sure the Render service is live and the `/chat` endpoint is reachable.
-
-### Browser reports CORS error
-
-- Confirm `ALLOWED_ORIGINS` contains the exact Vercel domain, including `https://`.
-- If you changed the Vercel domain, redeploy Render after updating the env vars.
-
-### Vercel refresh returns 404
-
-- Confirm `vercel.json` exists in the repo root.
-- Redeploy after the file is committed.
-
-### Render starts but chat fails
-
-- Confirm `HUNYUAN_API_KEY` is set correctly.
-- Check the Render logs for upstream Tencent Hunyuan errors or timeouts.
-
-### SQLite memory resets after redeploy
-
-- This is expected on Render's default ephemeral filesystem.
-- To keep NPC memory across restarts, attach a Render persistent disk and update `SQLITE_DB_PATH` to that mount path.
-
-## Final Deployment Checklist
-
-- Vercel public frontend URL is accessible in a browser
-- Render public backend URL responds successfully
-- `VITE_API_BASE_URL` points to Render
-- `ALLOWED_ORIGINS` includes the Vercel URL
-- `HUNYUAN_API_KEY` is configured on Render
-- NPC chat works online without local startup
+Older `Vercel` / `Render` deployment files are still kept in the repo for reference, but they are no longer the recommended path for stable access in mainland China mobile networks.
